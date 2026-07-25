@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Buscador Catastral Euskadi</title>
+    
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 12px; background-color: #f0f4f8; color: #1e293b; }
+        .container { max-width: 1400px; margin: 0 auto; background: white; padding: 16px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        
+        .header-top { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 16px; }
+        h1 { margin: 0; color: #0f172a; font-size: 20px; }
+        
+        .btn { padding: 10px 18px; font-size: 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s; color: white; display: inline-flex; align-items: center; justify-content: center; min-height: 42px; width: 100%; }
+        .btn-blue { background: #3b82f6; } .btn-blue:hover { background: #2563eb; }
+        
+        #status-panel { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; }
+        .status-header { display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 14px; color: #1e3a8a; }
+        .spinner { width: 18px; height: 18px; border: 3px solid #93c5fd; border-top: 3px solid #1d4ed8; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; margin-right: 10px; vertical-align: middle; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .controls-panel { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+        .search-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-size: 11px; font-weight: bold; color: #64748b; margin-bottom: 5px; text-transform: uppercase; }
+        
+        .form-group input, .form-group select { padding: 10px 12px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; background-color: #ffffff; -webkit-appearance: none; }
+        .form-group input:focus, .form-group select:focus { border-color: #3b82f6; }
+        
+        .column-selector { border-top: 1px solid #e2e8f0; padding-top: 14px; }
+        .column-selector h3 { font-size: 12px; color: #64748b; text-transform: uppercase; margin: 0 0 10px 0; }
+        .checkbox-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+        .checkbox-item { display: flex; align-items: center; font-size: 13px; color: #334155; padding: 4px 0; }
+        .checkbox-item input { width: 18px; height: 18px; margin-right: 8px; cursor: pointer; }
+
+        .table-container { overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px; max-height: 550px; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; white-space: nowrap; }
+        th { background: #f8fafc; color: #475569; font-weight: 600; padding: 12px; border-bottom: 2px solid #cbd5e1; cursor: pointer; position: sticky; top: 0; z-index: 10; user-select: none; }
+        th:hover { background: #e2e8f0; }
+        td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; }
+        tr:nth-child(even) { background-color: #fafafa; }
+        tr:hover td { background-color: #f1f5f9; }
+        
+        .badge { background: #e0f2fe; color: #0369a1; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-family: monospace; font-size: 12px; }
+        .btn-copy { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; }
+        .btn-copy:hover { background: #059669; }
+        .footer-info { margin-top: 12px; font-size: 12px; color: #64748b; font-weight: 600; }
+
+        @media (max-width: 768px) {
+            body { padding: 8px; }
+            .container { padding: 12px; border-radius: 8px; }
+            h1 { font-size: 18px; }
+            .search-grid { grid-template-columns: 1fr; padding: 10px; gap: 10px; }
+            .checkbox-grid { grid-template-columns: 1fr 1fr; }
+            td, th { padding: 10px 8px; font-size: 12px; }
+            .btn-copy { padding: 8px 10px; font-size: 11px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-top">
+        <h1>Buscador Catastral Euskadi</h1>
+    </div>
+
+    <div id="status-panel">
+        <div class="status-header">
+            <span><span class="spinner" id="loader-spinner"></span><span id="status-title">Iniciando aplicación...</span></span>
+        </div>
+    </div>
+
+    <div class="controls-panel">
+        <div class="search-grid">
+            <div class="form-group">
+                <label>1. Municipio</label>
+                <select id="filtroMunicipio" onchange="alSeleccionarMunicipio()">
+                    <option value="">-- Selecciona un Municipio --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>2. Calle / Vía</label>
+                <input type="text" id="filtroCalle" placeholder="Ej: ASTOLA" onkeyup="if(event.key === 'Enter') aplicarFiltrosSecundarios()">
+            </div>
+            <div class="form-group">
+                <label>3. Portal / Número</label>
+                <input type="text" id="filtroPortal" placeholder="Ej: 31" onkeyup="if(event.key === 'Enter') aplicarFiltrosSecundarios()">
+            </div>
+            <div class="form-group">
+                <label>4. Planta</label>
+                <input type="text" id="filtroPlanta" placeholder="Ej: 01" onkeyup="if(event.key === 'Enter') aplicarFiltrosSecundarios()">
+            </div>
+            <div class="form-group" style="justify-content: flex-end;">
+                <button class="btn btn-blue" onclick="aplicarFiltrosSecundarios()">🔍 Buscar</button>
+            </div>
+        </div>
+        
+        <div class="column-selector">
+            <h3>Columnas Visibles</h3>
+            <div class="checkbox-grid" id="checkboxGrid"></div>
+        </div>
+    </div>
+
+    <div class="table-container" id="tableContainer">
+        <table>
+            <thead id="tableHead"></thead>
+            <tbody id="tableBody">
+                <tr><td style="text-align:center; padding: 30px; color: #64748b;">Selecciona un municipio en el desplegable superior para cargar los datos.</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="footer-info" id="footerInfo"></div>
+</div>
+
+<script>
+// Ruta relativa al directorio de datos en el servidor
+const DIRECTORIO_DATOS = './data/';
+
+let listaIndexGlobal = []; 
+let cacheMunicipiosDescargados = {};
+
+let baseDatosMunicipioActual = [];
+let baseDatosFiltrada = [];
+let todasLasColumnas = [];
+let columnasActivas = new Set();
+let sortCol = null;
+let sortAsc = true;
+
+const COL_MUNICIPIO = 'Municipio';
+const COL_CALLE = 'Calle';
+const COL_PORTAL = 'Portal';
+const COL_PLANTA = 'Planta';
+
+window.onload = async function() {
+    try {
+        // Carga instantánea del índice de municipios en JSON
+        const resp = await fetch(`${DIRECTORIO_DATOS}index.json`);
+        if (!resp.ok) throw new Error("No se pudo cargar el índice de datos.");
+        
+        listaIndexGlobal = await resp.json();
+
+        const selectMuni = document.getElementById('filtroMunicipio');
+        selectMuni.innerHTML = '<option value="">-- Selecciona un Municipio --</option>';
+        
+        listaIndexGlobal.forEach(item => {
+            const opt = document.createElement('option');
+            opt.value = item.archivo;
+            opt.innerText = item.nombre;
+            selectMuni.appendChild(opt);
+        });
+
+        document.getElementById('status-panel').style.display = 'none';
+
+    } catch (e) {
+        console.error(e);
+        document.getElementById('loader-spinner').style.display = 'none';
+        document.getElementById('status-title').innerText = "Error cargando lista de municipios.";
+    }
+};
+
+async function alSeleccionarMunicipio() {
+    const archivoSeleccionado = document.getElementById('filtroMunicipio').value;
+    
+    if (!archivoSeleccionado) {
+        baseDatosMunicipioActual = [];
+        baseDatosFiltrada = [];
+        actualizarTabla();
+        return;
+    }
+
+    // Uso de memoria Caché instantáneo (0s)
+    if (cacheMunicipiosDescargados[archivoSeleccionado]) {
+        baseDatosMunicipioActual = cacheMunicipiosDescargados[archivoSeleccionado];
+        aplicarFiltrosSecundarios();
+        return;
+    }
+
+    const statusPanel = document.getElementById('status-panel');
+    const statusTitle = document.getElementById('status-title');
+    statusTitle.innerText = `Cargando datos...`;
+    statusPanel.style.display = 'block';
+
+    try {
+        // LECTURA DIRECTA DE ARCHIVO JSON NATIVO
+        const resp = await fetch(`${DIRECTORIO_DATOS}${archivoSeleccionado}`);
+        if (!resp.ok) throw new Error("Fallo la descarga del municipio");
+
+        baseDatosMunicipioActual = await resp.json();
+
+        // Extraer nombres de columna si es la primera vez
+        if (todasLasColumnas.length === 0 && baseDatosMunicipioActual.length > 0) {
+            todasLasColumnas = Object.keys(baseDatosMunicipioActual[0]);
+            const colsDefecto = [COL_MUNICIPIO, COL_CALLE, COL_PORTAL, COL_PLANTA, 'Elemento', 'Descripcion_Uso', 'Superficie', 'Numero_Fijo'];
+            todasLasColumnas.forEach(col => { if (colsDefecto.includes(col)) columnasActivas.add(col); });
+            generarCheckboxesColumnas();
+        }
+
+        cacheMunicipiosDescargados[archivoSeleccionado] = baseDatosMunicipioActual;
+        statusPanel.style.display = 'none';
+        aplicarFiltrosSecundarios();
+
+    } catch (e) {
+        console.error(e);
+        statusTitle.innerText = `Error al cargar el municipio.`;
+    }
+}
+
+function generarCheckboxesColumnas() {
+    const grid = document.getElementById('checkboxGrid');
+    grid.innerHTML = '';
+    todasLasColumnas.forEach(col => {
+        const label = document.createElement('label');
+        label.className = 'checkbox-item';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.value = col;
+        checkbox.checked = columnasActivas.has(col);
+        checkbox.onchange = (e) => {
+            if (e.target.checked) columnasActivas.add(col);
+            else columnasActivas.delete(col);
+            actualizarTabla();
+        };
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(col.replace(/_/g, ' ')));
+        grid.appendChild(label);
+    });
+}
+
+function aplicarFiltrosSecundarios() {
+    const calle = document.getElementById('filtroCalle').value.toUpperCase().trim();
+    const portal = document.getElementById('filtroPortal').value.toUpperCase().trim();
+    const planta = document.getElementById('filtroPlanta').value.toUpperCase().trim();
+
+    baseDatosFiltrada = baseDatosMunicipioActual.filter(fila => {
+        if (calle && (!fila[COL_CALLE] || !fila[COL_CALLE].includes(calle))) return false;
+        if (portal && fila[COL_PORTAL] !== portal) return false;
+        if (planta && fila[COL_PLANTA] !== planta) return false;
+        return true;
+    });
+
+    if (sortCol) aplicarOrdenacion();
+    actualizarTabla(false);
+}
+
+function ordenarTabla(colId) {
+    if (sortCol === colId) sortAsc = !sortAsc;
+    else { sortCol = colId; sortAsc = true; }
+    aplicarOrdenacion();
+    actualizarTabla(false);
+}
+
+function aplicarOrdenacion() {
+    baseDatosFiltrada.sort((a, b) => {
+        let valA = a[sortCol] || '';
+        let valB = b[sortCol] || '';
+        const numA = parseFloat(valA.replace(',', '.'));
+        const numB = parseFloat(valB.replace(',', '.'));
+        if (!isNaN(numA) && !isNaN(numB)) return sortAsc ? numA - numB : numB - numA;
+        return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+    });
+}
+
+function actualizarTabla(reconstruirCabeceras = true) {
+    const columnasAMostrar = todasLasColumnas.filter(col => columnasActivas.has(col));
+    
+    if (reconstruirCabeceras) {
+        const thead = document.getElementById('tableHead');
+        const tr = document.createElement('tr');
+        columnasAMostrar.forEach(col => {
+            const th = document.createElement('th');
+            let icon = sortCol === col ? (sortAsc ? ' ▲' : ' ▼') : '';
+            th.innerHTML = `${col.replace(/_/g, ' ')} <span style="font-size:10px; color:#94a3b8">${icon}</span>`;
+            th.onclick = () => ordenarTabla(col);
+            tr.appendChild(th);
+        });
+        const thAccion = document.createElement('th');
+        thAccion.innerText = "Acción";
+        tr.appendChild(thAccion);
+        thead.innerHTML = '';
+        thead.appendChild(tr);
+    }
+
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+    
+    const limit = 400;
+    const mostrar = baseDatosFiltrada.slice(0, limit);
+    
+    if (mostrar.length === 0) {
+        const msj = document.getElementById('filtroMunicipio').value 
+            ? "No se encontraron inmuebles con los filtros aplicados." 
+            : "Selecciona un municipio en el desplegable superior para cargar los datos.";
+        tbody.innerHTML = `<tr><td colspan="${columnasAMostrar.length + 1}" style="text-align:center; padding:30px; color:#64748b;">${msj}</td></tr>`;
+        document.getElementById('footerInfo').innerText = '';
+        return;
+    }
+
+    const fragment = document.createDocumentFragment();
+    mostrar.forEach(fila => {
+        const tr = document.createElement('tr');
+        columnasAMostrar.forEach(col => {
+            const td = document.createElement('td');
+            let val = fila[col] || '';
+            if (col === 'Numero_Fijo') td.innerHTML = `<span class="badge">${val}</span>`;
+            else td.innerText = val;
+            tr.appendChild(td);
+        });
+        const tdAccion = document.createElement('td');
+        const numFijo = fila['Numero_Fijo'] || '';
+        if (numFijo) tdAccion.innerHTML = `<button class="btn-copy" onclick="copiar(this, '${numFijo}')">Copiar Fijo</button>`;
+        tr.appendChild(tdAccion);
+        fragment.appendChild(tr);
+    });
+    tbody.appendChild(fragment);
+
+    let msj = `Mostrando ${mostrar.length} resultados.`;
+    if (baseDatosFiltrada.length > limit) msj += ` (${baseDatosFiltrada.length.toLocaleString()} totales en este municipio).`;
+    document.getElementById('footerInfo').innerText = msj;
+}
+
+function copiar(boton, texto) {
+    navigator.clipboard.writeText(texto).then(() => {
+        const prev = boton.innerText;
+        boton.innerText = "¡OK!";
+        boton.style.background = "#059669";
+        setTimeout(() => { boton.innerText = prev; boton.style.background = "#10b981"; }, 800);
+    });
+}
+</script>
+
+</body>
+</html>
