@@ -7,8 +7,14 @@
     
     <style>
         * { box-sizing: border-box; }
+        
+        /* FIX ESTRICTO PARA MÓVILES: Bloquea el baile horizontal de la pantalla entera */
+        html, body { max-width: 100vw; overflow-x: hidden; }
+        
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 12px; background-color: #f0f4f8; color: #1e293b; }
-        .container { max-width: 1400px; margin: 0 auto; background: white; padding: 16px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        
+        /* El contenedor principal se "recorta" para obligar a la tabla a hacer scroll interno */
+        .container { max-width: 100%; margin: 0 auto; background: white; padding: 16px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 100%; overflow-x: hidden; }
         
         .header-top { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 16px; }
         h1 { margin: 0; color: #0f172a; font-size: 20px; }
@@ -20,26 +26,47 @@
         .status-header { display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 14px; color: #1e3a8a; }
         .spinner { width: 18px; height: 18px; border: 3px solid #93c5fd; border-top: 3px solid #1d4ed8; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; margin-right: 10px; vertical-align: middle; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .error-box { margin-top: 10px; padding: 12px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; color: #991b1b; font-family: monospace; font-size: 12px; white-space: pre-wrap; word-break: break-all; }
 
-        #error-panel { display: none; background: #fef2f2; border: 1px solid #f87171; border-left: 4px solid #ef4444; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; color: #991b1b; font-size: 13px; }
-        #error-panel strong { display: block; font-size: 14px; margin-bottom: 4px; }
-        .debug-info { font-family: monospace; background: #fee2e2; padding: 8px; border-radius: 4px; margin-top: 8px; white-space: pre-wrap; word-break: break-all; font-size: 11px; }
-
-        .controls-panel { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
-        .search-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid #e2e8f0; }
-        .form-group { display: flex; flex-direction: column; }
-        .form-group label { font-size: 11px; font-weight: bold; color: #64748b; margin-bottom: 5px; text-transform: uppercase; }
+        .controls-panel { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 16px; width: 100%; }
+        .search-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid #e2e8f0; width: 100%; }
         
-        .form-group input, .form-group select { padding: 10px 12px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; background-color: #ffffff; -webkit-appearance: none; }
+        .form-group { display: flex; flex-direction: column; min-width: 0; }
+        .form-group label { font-size: 11px; font-weight: bold; color: #64748b; margin-bottom: 5px; text-transform: uppercase; }
+        .form-group input, .form-group select { 
+            width: 100%; max-width: 100%; padding: 10px 12px; font-size: 16px; 
+            border: 1px solid #cbd5e1; border-radius: 6px; outline: none; 
+            background-color: #ffffff; -webkit-appearance: none;
+            text-overflow: ellipsis; overflow: hidden; white-space: nowrap;
+        }
         .form-group input:focus, .form-group select:focus { border-color: #3b82f6; }
         
         .column-selector { border-top: 1px solid #e2e8f0; padding-top: 14px; }
         .column-selector h3 { font-size: 12px; color: #64748b; text-transform: uppercase; margin: 0 0 10px 0; }
-        .checkbox-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
-        .checkbox-item { display: flex; align-items: center; font-size: 13px; color: #334155; padding: 4px 0; }
-        .checkbox-item input { width: 18px; height: 18px; margin-right: 8px; cursor: pointer; }
+        .checkbox-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+        .checkbox-item { display: flex; align-items: center; font-size: 12px; color: #334155; padding: 4px 0; }
+        .checkbox-item input { width: 16px; height: 16px; margin-right: 6px; cursor: pointer; }
 
-        .table-container { overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px; max-height: 550px; -webkit-overflow-scrolling: touch; }
+        /* AVISO DE SCROLL EN MÓVIL */
+        .mobile-scroll-hint { display: none; font-size: 12px; color: #3b82f6; font-weight: bold; text-align: right; margin-bottom: 8px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* CONTENEDOR DE LA TABLA (Scroll Forzado Interno) */
+        .table-container { 
+            width: 100%; 
+            max-width: 100%;
+            overflow-x: auto; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 8px; 
+            max-height: 550px; 
+            -webkit-overflow-scrolling: touch; 
+            display: block; 
+        }
+        .table-container::-webkit-scrollbar { height: 10px; }
+        .table-container::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 0 0 8px 8px; }
+        .table-container::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 8px; border: 2px solid #f1f5f9; }
+        .table-container::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; white-space: nowrap; }
         th { background: #f8fafc; color: #475569; font-weight: 600; padding: 12px; border-bottom: 2px solid #cbd5e1; cursor: pointer; position: sticky; top: 0; z-index: 10; user-select: none; }
         th:hover { background: #e2e8f0; }
@@ -60,6 +87,7 @@
             .checkbox-grid { grid-template-columns: 1fr 1fr; }
             td, th { padding: 10px 8px; font-size: 12px; }
             .btn-copy { padding: 8px 10px; font-size: 11px; }
+            .mobile-scroll-hint { display: block; }
         }
     </style>
 </head>
@@ -74,12 +102,7 @@
         <div class="status-header">
             <span><span class="spinner" id="loader-spinner"></span><span id="status-title">Iniciando aplicación...</span></span>
         </div>
-    </div>
-
-    <div id="error-panel">
-        <strong id="error-title">Error</strong>
-        <span id="error-message"></span>
-        <div class="debug-info" id="error-debug"></div>
+        <div id="status-details"></div>
     </div>
 
     <div class="controls-panel">
@@ -99,7 +122,7 @@
                 <input type="text" id="filtroPortal" placeholder="Ej: 31" onkeyup="if(event.key === 'Enter') aplicarFiltrosSecundarios()">
             </div>
             <div class="form-group">
-                <label>4. Planta</label>
+                <label>4. Planta / Piso</label>
                 <input type="text" id="filtroPlanta" placeholder="Ej: 01" onkeyup="if(event.key === 'Enter') aplicarFiltrosSecundarios()">
             </div>
             <div class="form-group" style="justify-content: flex-end;">
@@ -111,6 +134,10 @@
             <h3>Columnas Visibles</h3>
             <div class="checkbox-grid" id="checkboxGrid"></div>
         </div>
+    </div>
+
+    <div class="mobile-scroll-hint" id="scrollHint">
+        👉 Desliza la tabla hacia la izquierda para ver todas las columnas
     </div>
 
     <div class="table-container" id="tableContainer">
@@ -132,8 +159,6 @@ let cacheMunicipiosDescargados = {};
 
 let baseDatosMunicipioActual = [];
 let baseDatosFiltrada = [];
-let todasLasColumnas = [];
-let columnasActivas = new Set();
 let sortCol = null;
 let sortAsc = true;
 
@@ -142,43 +167,57 @@ const COL_CALLE = 'Calle';
 const COL_PORTAL = 'Portal';
 const COL_PLANTA = 'Planta';
 
-function mostrarError(titulo, mensaje, debugInfo = '') {
-    const panel = document.getElementById('error-panel');
-    document.getElementById('error-title').innerText = titulo;
-    document.getElementById('error-message').innerText = mensaje;
-    
-    const debugDiv = document.getElementById('error-debug');
-    if (debugInfo) {
-        debugDiv.style.display = 'block';
-        debugDiv.innerText = debugInfo;
-    } else {
-        debugDiv.style.display = 'none';
-    }
-    
-    panel.style.display = 'block';
-    document.getElementById('status-panel').style.display = 'none';
-}
+// ORDEN EXACTO en el que quieres que aparezcan las columnas (Intacto)
+const todasLasColumnas = [
+    "Municipio", "Calle", "Portal", "Planta", "Elemento", "Numero_Fijo", "Ano_Construccion", "Descripcion_Uso", "Superficie",
+    "Naturaleza", "UsoBi", "Codigo_Uso", "Codigo_Clase", "Codigo_Modalidad", 
+    "Codigo_Municipio", "Codigo_Poligono", "Codigo_Parcela", 
+    "Codigo_Subparcela", "Codigo_Edificio", "Codigo_Calle", "Bien_Inmueble"
+];
 
-function ocultarError() {
-    document.getElementById('error-panel').style.display = 'none';
+// LISTA DE COLUMNAS PREMARCADAS POR DEFECTO (Intacto)
+const colsDefecto = [
+    "Municipio", "Calle", "Portal", "Planta", "Elemento", "Numero_Fijo", "Ano_Construccion", "Descripcion_Uso", "Superficie"
+];
+
+// Asignamos las casillas activas
+let columnasActivas = new Set(colsDefecto);
+
+function mostrarErrorDiag(titulo, detalle) {
+    const statusPanel = document.getElementById('status-panel');
+    const statusTitle = document.getElementById('status-title');
+    const statusDetails = document.getElementById('status-details');
+    const spinner = document.getElementById('loader-spinner');
+
+    spinner.style.display = 'none';
+    statusTitle.innerText = titulo;
+    statusDetails.innerHTML = `<div class="error-box"><strong>Detalle del error:</strong>\n${detalle}</div>`;
+    statusPanel.style.display = 'block';
 }
 
 window.onload = async function() {
-    ocultarError();
+    generarCheckboxesColumnas(); 
+    actualizarTabla(true);       
+
     const urlIndex = `${DIRECTORIO_DATOS}index.json`;
     try {
         const resp = await fetch(urlIndex);
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}. Error al cargar: ${urlIndex}`);
+        if (!resp.ok) {
+            throw new Error(`Error HTTP ${resp.status} al leer el archivo index.json.`);
+        }
         
-        listaIndexGlobal = await resp.json();
+        try {
+            listaIndexGlobal = await resp.json();
+        } catch (jsonErr) {
+            throw new Error(`El archivo index.json existe pero no es válido.\nCausa: ${jsonErr.message}`);
+        }
 
         const selectMuni = document.getElementById('filtroMunicipio');
         selectMuni.innerHTML = '<option value="">-- Selecciona un Municipio --</option>';
         
         listaIndexGlobal.forEach(item => {
             const opt = document.createElement('option');
-            // Guardamos el ARRAY entero convertido a texto en el value del select
-            opt.value = JSON.stringify(item.archivos);
+            opt.value = item.nombre;
             opt.innerText = item.nombre;
             selectMuni.appendChild(opt);
         });
@@ -187,70 +226,61 @@ window.onload = async function() {
 
     } catch (e) {
         console.error(e);
-        mostrarError("Error al iniciar", "No se pudo cargar el archivo índice de los municipios.", e.message || e.toString());
+        mostrarErrorDiag("❌ Error al iniciar la aplicación", e.message);
     }
 };
 
 async function alSeleccionarMunicipio() {
-    ocultarError();
-    const seleccion = document.getElementById('filtroMunicipio').value;
-    
-    if (!seleccion) {
-        baseDatosMunicipioActual = [];
-        baseDatosFiltrada = [];
-        actualizarTabla();
-        return;
-    }
-
-    if (cacheMunicipiosDescargados[seleccion]) {
-        baseDatosMunicipioActual = cacheMunicipiosDescargados[seleccion];
-        aplicarFiltrosSecundarios(true);
-        return;
-    }
-
+    const muniNombre = document.getElementById('filtroMunicipio').value;
     const statusPanel = document.getElementById('status-panel');
     const statusTitle = document.getElementById('status-title');
-    statusTitle.innerText = `Cargando datos (puede tardar en municipios grandes)...`;
+    const statusDetails = document.getElementById('status-details');
+    const spinner = document.getElementById('loader-spinner');
+    
+    statusDetails.innerHTML = '';
+    
+    if (!muniNombre) {
+        baseDatosMunicipioActual = [];
+        baseDatosFiltrada = [];
+        actualizarTabla(true);
+        return;
+    }
+
+    if (cacheMunicipiosDescargados[muniNombre]) {
+        baseDatosMunicipioActual = cacheMunicipiosDescargados[muniNombre];
+        aplicarFiltrosSecundarios();
+        return;
+    }
+
+    const itemMuni = listaIndexGlobal.find(m => m.nombre === muniNombre);
+    if (!itemMuni || !itemMuni.archivos || itemMuni.archivos.length === 0) {
+        mostrarErrorDiag("❌ Error de datos", `El municipio no tiene lista de archivos asignada.`);
+        return;
+    }
+
+    spinner.style.display = 'inline-block';
+    statusTitle.innerText = `Cargando datos de ${muniNombre}...`;
     statusPanel.style.display = 'block';
 
     try {
-        // Convertimos de vuelta el texto a un array de archivos
-        const archivos = JSON.parse(seleccion);
-        
-        // Lanzamos todas las descargas a la vez en paralelo
-        const fetchPromises = archivos.map(async (archivo) => {
-            const url = `${DIRECTORIO_DATOS}${archivo}`;
-            const resp = await fetch(url);
-            if (!resp.ok) throw new Error(`HTTP ${resp.status} al cargar ${url}`);
-            
-            const textoBruto = await resp.text();
-            try {
-                return JSON.parse(textoBruto);
-            } catch (jsonErr) {
-                throw new Error(`El archivo ${archivo} no es un JSON válido. Detalles: ${jsonErr.message}`);
-            }
+        const promesas = itemMuni.archivos.map(async (arc) => {
+            const urlArc = `${DIRECTORIO_DATOS}${arc}`;
+            const resp = await fetch(urlArc);
+            if (!resp.ok) throw new Error(`Fallo descargando ${urlArc}`);
+            return await resp.json();
         });
 
-        // Esperamos a que se descarguen todos los trozos del municipio
-        const arraysDeDatos = await Promise.all(fetchPromises);
-        
-        // Juntamos todos los arrays (trozos) en una sola base de datos grande
-        baseDatosMunicipioActual = arraysDeDatos.flat();
+        const partesDescargadas = await Promise.all(promesas);
+        baseDatosMunicipioActual = partesDescargadas.flat();
 
-        if (todasLasColumnas.length === 0 && baseDatosMunicipioActual.length > 0) {
-            todasLasColumnas = Object.keys(baseDatosMunicipioActual[0]);
-            const colsDefecto = [COL_MUNICIPIO, COL_CALLE, COL_PORTAL, COL_PLANTA, 'Elemento', 'Descripcion_Uso', 'Superficie', 'Numero_Fijo'];
-            todasLasColumnas.forEach(col => { if (colsDefecto.includes(col)) columnasActivas.add(col); });
-            generarCheckboxesColumnas();
-        }
-
-        cacheMunicipiosDescargados[seleccion] = baseDatosMunicipioActual;
+        cacheMunicipiosDescargados[muniNombre] = baseDatosMunicipioActual;
         statusPanel.style.display = 'none';
-        aplicarFiltrosSecundarios(true);
+        
+        aplicarFiltrosSecundarios();
 
     } catch (e) {
         console.error(e);
-        mostrarError("Error al cargar el municipio", "Hubo un problema descargando o leyendo los datos del municipio.", e.message || e.toString());
+        mostrarErrorDiag(`❌ Error al cargar ${muniNombre}`, e.message);
     }
 }
 
@@ -267,7 +297,7 @@ function generarCheckboxesColumnas() {
         checkbox.onchange = (e) => {
             if (e.target.checked) columnasActivas.add(col);
             else columnasActivas.delete(col);
-            actualizarTabla();
+            actualizarTabla(true); 
         };
         label.appendChild(checkbox);
         label.appendChild(document.createTextNode(col.replace(/_/g, ' ')));
@@ -275,37 +305,33 @@ function generarCheckboxesColumnas() {
     });
 }
 
-function aplicarFiltrosSecundarios(reconstruirCabeceras = false) {
+function aplicarFiltrosSecundarios() {
     const calle = document.getElementById('filtroCalle').value.toUpperCase().trim();
     const portal = document.getElementById('filtroPortal').value.toUpperCase().trim();
     const planta = document.getElementById('filtroPlanta').value.toUpperCase().trim();
 
     baseDatosFiltrada = baseDatosMunicipioActual.filter(fila => {
-        const valCalle = String(fila[COL_CALLE] || '').toUpperCase();
-        const valPortal = String(fila[COL_PORTAL] || '').toUpperCase();
-        const valPlanta = String(fila[COL_PLANTA] || '').toUpperCase();
-        
-        if (calle && !valCalle.includes(calle)) return false;
-        if (portal && valPortal !== portal) return false;
-        if (planta && valPlanta !== planta) return false;
+        if (calle && (!fila[COL_CALLE] || !fila[COL_CALLE].includes(calle))) return false;
+        if (portal && fila[COL_PORTAL] !== portal) return false;
+        if (planta && fila[COL_PLANTA] !== planta) return false;
         return true;
     });
 
     if (sortCol) aplicarOrdenacion();
-    actualizarTabla(reconstruirCabeceras);
+    actualizarTabla(true);
 }
 
 function ordenarTabla(colId) {
     if (sortCol === colId) sortAsc = !sortAsc;
     else { sortCol = colId; sortAsc = true; }
     aplicarOrdenacion();
-    actualizarTabla(false);
+    actualizarTabla(true);
 }
 
 function aplicarOrdenacion() {
     baseDatosFiltrada.sort((a, b) => {
-        let valA = String(a[sortCol] || '');
-        let valB = String(b[sortCol] || '');
+        let valA = a[sortCol] || '';
+        let valB = b[sortCol] || '';
         const numA = parseFloat(valA.replace(',', '.'));
         const numB = parseFloat(valB.replace(',', '.'));
         if (!isNaN(numA) && !isNaN(numB)) return sortAsc ? numA - numB : numB - numA;
