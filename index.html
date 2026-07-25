@@ -5,201 +5,70 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Buscador Catastral Euskadi</title>
     
-    <!-- Google Fonts & Lucide Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
-
     <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --bg-main: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
-            --accent: #10b981;
-        }
-
         * { box-sizing: border-box; }
-        body { 
-            font-family: 'Inter', sans-serif; 
-            margin: 0; 
-            padding: 20px; 
-            background-color: var(--bg-main); 
-            color: var(--text-main);
-            line-height: 1.5;
-        }
-
-        .container { 
-            max-width: 1300px; 
-            margin: 0 auto; 
-        }
-
-        /* Header */
-        .header-top { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 24px;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 12px; background-color: #f0f4f8; color: #1e293b; }
+        .container { max-width: 1400px; margin: 0 auto; background: white; padding: 16px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         
-        .logo-area { display: flex; align-items: center; gap: 12px; }
-        .logo-icon { 
-            background: var(--primary); 
-            color: white; 
-            padding: 8px; 
-            border-radius: 10px;
-            display: flex;
-        }
-        h1 { margin: 0; color: #0f172a; font-size: 24px; font-weight: 700; letter-spacing: -0.025em; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 16px; }
+        h1 { margin: 0; color: #0f172a; font-size: 20px; }
         
-        /* Status Panel */
-        #status-panel { 
-            background: white; 
-            border: 1px solid var(--border-color);
-            border-radius: 12px; 
-            padding: 16px; 
-            margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .status-header { display: flex; align-items: center; gap: 12px; font-weight: 500; font-size: 14px; color: var(--primary); }
+        .btn { padding: 10px 18px; font-size: 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s; color: white; display: inline-flex; align-items: center; justify-content: center; min-height: 42px; width: 100%; }
+        .btn-blue { background: #3b82f6; } .btn-blue:hover { background: #2563eb; }
         
-        .spinner { 
-            width: 20px; height: 20px; 
-            border: 3px solid #e2e8f0; border-top: 3px solid var(--primary); 
-            border-radius: 50%; animation: spin 0.8s linear infinite; 
-        }
+        #status-panel { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; }
+        .status-header { display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 14px; color: #1e3a8a; }
+        .spinner { width: 18px; height: 18px; border: 3px solid #93c5fd; border-top: 3px solid #1d4ed8; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; margin-right: 10px; vertical-align: middle; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Controls */
-        .controls-panel { 
-            background: var(--card-bg); 
-            border: 1px solid var(--border-color); 
-            border-radius: 16px; 
-            padding: 24px; 
-            margin-bottom: 24px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        }
-
-        .search-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-            gap: 16px; 
-            margin-bottom: 24px; 
-        }
-
-        .form-group { display: flex; flex-direction: column; gap: 6px; }
-        .form-group label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        .controls-panel { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+        .search-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-size: 11px; font-weight: bold; color: #64748b; margin-bottom: 5px; text-transform: uppercase; }
         
-        .form-group input, .form-group select { 
-            padding: 12px 14px; 
-            font-size: 15px; 
-            border: 1px solid var(--border-color); 
-            border-radius: 10px; 
-            outline: none; 
-            background-color: #fff;
-            transition: all 0.2s;
-            color: var(--text-main);
-        }
-        .form-group input:focus, .form-group select:focus { 
-            border-color: var(--primary); 
-            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
-        }
-
-        .btn { 
-            padding: 12px 20px; 
-            font-size: 14px; 
-            border: none; 
-            border-radius: 10px; 
-            cursor: pointer; 
-            font-weight: 600; 
-            transition: all 0.2s; 
-            display: inline-flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 8px;
-            height: 46px;
-        }
-        .btn-blue { background: var(--primary); color: white; }
-        .btn-blue:hover { background: var(--primary-hover); transform: translateY(-1px); }
-        .btn-blue:active { transform: translateY(0px); }
-
-        /* Column Selector */
-        .column-selector { border-top: 1px solid var(--border-color); padding-top: 20px; }
-        .column-selector h3 { font-size: 12px; color: var(--text-muted); text-transform: uppercase; margin: 0 0 16px 0; display: flex; align-items: center; gap: 6px; }
-        .checkbox-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
-        .checkbox-item { 
-            display: flex; align-items: center; font-size: 13px; color: var(--text-main); 
-            padding: 8px 12px; background: #f8fafc; border-radius: 8px; border: 1px solid transparent; cursor: pointer; transition: 0.2s;
-        }
-        .checkbox-item:hover { background: #f1f5f9; border-color: var(--border-color); }
-        .checkbox-item input { width: 16px; height: 16px; margin-right: 10px; cursor: pointer; accent-color: var(--primary); }
-
-        /* Table Area */
-        .table-container { 
-            background: white;
-            border: 1px solid var(--border-color); 
-            border-radius: 16px; 
-            overflow: hidden; 
-            max-height: 600px; 
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-        }
+        .form-group input, .form-group select { padding: 10px 12px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; background-color: #ffffff; -webkit-appearance: none; }
+        .form-group input:focus, .form-group select:focus { border-color: #3b82f6; }
         
-        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
-        th { 
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(8px);
-            color: var(--text-muted); 
-            font-weight: 600; 
-            padding: 16px; 
-            border-bottom: 1px solid var(--border-color); 
-            cursor: pointer; 
-            position: sticky; top: 0; z-index: 10;
-        }
-        th:hover { color: var(--primary); background: #f8fafc; }
-        td { padding: 14px 16px; border-bottom: 1px solid var(--border-color); }
-        tr:last-child td { border-bottom: none; }
-        tr:hover td { background-color: #f8fafc; }
-        
-        .badge { 
-            background: #eef2ff; color: var(--primary); padding: 4px 10px; border-radius: 6px; 
-            font-weight: 600; font-family: 'Monaco', monospace; font-size: 12px; border: 1px solid #e0e7ff;
-        }
-        
-        .btn-copy { 
-            background: white; color: var(--text-main); border: 1px solid var(--border-color); 
-            padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600;
-            display: flex; align-items: center; gap: 4px; transition: 0.2s;
-        }
-        .btn-copy:hover { border-color: var(--primary); color: var(--primary); background: #f5f3ff; }
+        .column-selector { border-top: 1px solid #e2e8f0; padding-top: 14px; }
+        .column-selector h3 { font-size: 12px; color: #64748b; text-transform: uppercase; margin: 0 0 10px 0; }
+        .checkbox-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+        .checkbox-item { display: flex; align-items: center; font-size: 13px; color: #334155; padding: 4px 0; }
+        .checkbox-item input { width: 18px; height: 18px; margin-right: 8px; cursor: pointer; }
 
-        .footer-info { margin-top: 16px; font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+        .table-container { overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px; max-height: 550px; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; white-space: nowrap; }
+        th { background: #f8fafc; color: #475569; font-weight: 600; padding: 12px; border-bottom: 2px solid #cbd5e1; cursor: pointer; position: sticky; top: 0; z-index: 10; user-select: none; }
+        th:hover { background: #e2e8f0; }
+        td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; }
+        tr:nth-child(even) { background-color: #fafafa; }
+        tr:hover td { background-color: #f1f5f9; }
+        
+        .badge { background: #e0f2fe; color: #0369a1; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-family: monospace; font-size: 12px; }
+        .btn-copy { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; }
+        .btn-copy:hover { background: #059669; }
+        .footer-info { margin-top: 12px; font-size: 12px; color: #64748b; font-weight: 600; }
 
-        /* Mobile Adjustments */
         @media (max-width: 768px) {
-            body { padding: 12px; }
-            .header-top { flex-direction: column; align-items: flex-start; gap: 12px; }
-            .controls-panel { padding: 16px; }
+            body { padding: 8px; }
+            .container { padding: 12px; border-radius: 8px; }
+            h1 { font-size: 18px; }
+            .search-grid { grid-template-columns: 1fr; padding: 10px; gap: 10px; }
             .checkbox-grid { grid-template-columns: 1fr 1fr; }
-            .btn { width: 100%; }
+            td, th { padding: 10px 8px; font-size: 12px; }
+            .btn-copy { padding: 8px 10px; font-size: 11px; }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header class="header-top">
-        <div class="logo-area">
-            <div class="logo-icon"><i data-lucide="map"></i></div>
-            <h1>Buscador Catastral Euskadi</h1>
-        </div>
-    </header>
+    <div class="header-top">
+        <h1>Buscador Catastral Euskadi</h1>
+    </div>
 
     <div id="status-panel">
         <div class="status-header">
-            <span class="spinner" id="loader-spinner"></span>
-            <span id="status-title">Iniciando aplicación...</span>
+            <span><span class="spinner" id="loader-spinner"></span><span id="status-title">Iniciando aplicación...</span></span>
         </div>
     </div>
 
@@ -208,56 +77,50 @@
             <div class="form-group">
                 <label>1. Municipio</label>
                 <select id="filtroMunicipio" onchange="alSeleccionarMunicipio()">
-                    <option value="">-- Selecciona --</option>
+                    <option value="">-- Selecciona un Municipio --</option>
                 </select>
             </div>
             <div class="form-group">
                 <label>2. Calle / Vía</label>
-                <input type="text" id="filtroCalle" placeholder="Buscar vía..." onkeyup="if(event.key === 'Enter') aplicarFiltrosSecundarios()">
+                <input type="text" id="filtroCalle" placeholder="Ej: ASTOLA" onkeyup="if(event.key === 'Enter') aplicarFiltrosSecundarios()">
             </div>
             <div class="form-group">
-                <label>3. Portal</label>
-                <input type="text" id="filtroPortal" placeholder="Nº" onkeyup="if(event.key === 'Enter') aplicarFiltrosSecundarios()">
+                <label>3. Portal / Número</label>
+                <input type="text" id="filtroPortal" placeholder="Ej: 31" onkeyup="if(event.key === 'Enter') aplicarFiltrosSecundarios()">
             </div>
             <div class="form-group">
                 <label>4. Planta</label>
-                <input type="text" id="filtroPlanta" placeholder="Piso" onkeyup="if(event.key === 'Enter') aplicarFiltrosSecundarios()">
+                <input type="text" id="filtroPlanta" placeholder="Ej: 01" onkeyup="if(event.key === 'Enter') aplicarFiltrosSecundarios()">
             </div>
             <div class="form-group" style="justify-content: flex-end;">
-                <button class="btn btn-blue" onclick="aplicarFiltrosSecundarios()">
-                    <i data-lucide="search" size="18"></i> Buscar
-                </button>
+                <button class="btn btn-blue" onclick="aplicarFiltrosSecundarios()">🔍 Buscar</button>
             </div>
         </div>
         
         <div class="column-selector">
-            <h3><i data-lucide="settings-2" size="14"></i> Columnas Visibles</h3>
+            <h3>Columnas Visibles</h3>
             <div class="checkbox-grid" id="checkboxGrid"></div>
         </div>
     </div>
 
-    <div class="table-container">
-        <table id="mainTable">
+    <div class="table-container" id="tableContainer">
+        <table>
             <thead id="tableHead"></thead>
             <tbody id="tableBody">
-                <tr>
-                    <td style="text-align:center; padding: 60px; color: #94a3b8;">
-                        <i data-lucide="building-2" size="40" style="margin-bottom: 12px; opacity: 0.5;"></i>
-                        <p>Selecciona un municipio para visualizar los datos</p>
-                    </td>
-                </tr>
+                <tr><td style="text-align:center; padding: 30px; color: #64748b;">Selecciona un municipio en el desplegable superior para cargar los datos.</td></tr>
             </tbody>
         </table>
     </div>
-
     <div class="footer-info" id="footerInfo"></div>
 </div>
 
 <script>
-// --- LA LÓGICA PERMANECE IGUAL PERO CON MEJORAS DE UI ---
+// Ruta relativa al directorio de datos en el servidor
 const DIRECTORIO_DATOS = './data/';
+
 let listaIndexGlobal = []; 
 let cacheMunicipiosDescargados = {};
+
 let baseDatosMunicipioActual = [];
 let baseDatosFiltrada = [];
 let todasLasColumnas = [];
@@ -271,30 +134,43 @@ const COL_PORTAL = 'Portal';
 const COL_PLANTA = 'Planta';
 
 window.onload = async function() {
-    lucide.createIcons();
     try {
+        // Carga instantánea del índice de municipios en JSON
         const resp = await fetch(`${DIRECTORIO_DATOS}index.json`);
-        if (!resp.ok) throw new Error("No se pudo cargar el índice.");
+        if (!resp.ok) throw new Error("No se pudo cargar el índice de datos.");
+        
         listaIndexGlobal = await resp.json();
 
         const selectMuni = document.getElementById('filtroMunicipio');
+        selectMuni.innerHTML = '<option value="">-- Selecciona un Municipio --</option>';
+        
         listaIndexGlobal.forEach(item => {
             const opt = document.createElement('option');
             opt.value = item.archivo;
             opt.innerText = item.nombre;
             selectMuni.appendChild(opt);
         });
+
         document.getElementById('status-panel').style.display = 'none';
+
     } catch (e) {
+        console.error(e);
         document.getElementById('loader-spinner').style.display = 'none';
-        document.getElementById('status-title').innerText = "Error cargando datos base.";
+        document.getElementById('status-title').innerText = "Error cargando lista de municipios.";
     }
 };
 
 async function alSeleccionarMunicipio() {
     const archivoSeleccionado = document.getElementById('filtroMunicipio').value;
-    if (!archivoSeleccionado) return;
+    
+    if (!archivoSeleccionado) {
+        baseDatosMunicipioActual = [];
+        baseDatosFiltrada = [];
+        actualizarTabla();
+        return;
+    }
 
+    // Uso de memoria Caché instantáneo (0s)
     if (cacheMunicipiosDescargados[archivoSeleccionado]) {
         baseDatosMunicipioActual = cacheMunicipiosDescargados[archivoSeleccionado];
         aplicarFiltrosSecundarios();
@@ -303,13 +179,17 @@ async function alSeleccionarMunicipio() {
 
     const statusPanel = document.getElementById('status-panel');
     const statusTitle = document.getElementById('status-title');
-    statusTitle.innerText = `Descargando base de datos...`;
+    statusTitle.innerText = `Cargando datos...`;
     statusPanel.style.display = 'block';
 
     try {
+        // LECTURA DIRECTA DE ARCHIVO JSON NATIVO
         const resp = await fetch(`${DIRECTORIO_DATOS}${archivoSeleccionado}`);
+        if (!resp.ok) throw new Error("Fallo la descarga del municipio");
+
         baseDatosMunicipioActual = await resp.json();
 
+        // Extraer nombres de columna si es la primera vez
         if (todasLasColumnas.length === 0 && baseDatosMunicipioActual.length > 0) {
             todasLasColumnas = Object.keys(baseDatosMunicipioActual[0]);
             const colsDefecto = [COL_MUNICIPIO, COL_CALLE, COL_PORTAL, COL_PLANTA, 'Elemento', 'Descripcion_Uso', 'Superficie', 'Numero_Fijo'];
@@ -320,8 +200,10 @@ async function alSeleccionarMunicipio() {
         cacheMunicipiosDescargados[archivoSeleccionado] = baseDatosMunicipioActual;
         statusPanel.style.display = 'none';
         aplicarFiltrosSecundarios();
+
     } catch (e) {
-        statusTitle.innerText = `Error al cargar municipio.`;
+        console.error(e);
+        statusTitle.innerText = `Error al cargar el municipio.`;
     }
 }
 
@@ -333,6 +215,7 @@ function generarCheckboxesColumnas() {
         label.className = 'checkbox-item';
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
+        checkbox.value = col;
         checkbox.checked = columnasActivas.has(col);
         checkbox.onchange = (e) => {
             if (e.target.checked) columnasActivas.add(col);
@@ -358,92 +241,94 @@ function aplicarFiltrosSecundarios() {
     });
 
     if (sortCol) aplicarOrdenacion();
-    actualizarTabla(true);
+    actualizarTabla(false);
 }
 
 function ordenarTabla(colId) {
     if (sortCol === colId) sortAsc = !sortAsc;
     else { sortCol = colId; sortAsc = true; }
     aplicarOrdenacion();
-    actualizarTabla(true);
+    actualizarTabla(false);
 }
 
 function aplicarOrdenacion() {
     baseDatosFiltrada.sort((a, b) => {
         let valA = a[sortCol] || '';
         let valB = b[sortCol] || '';
-        const numA = parseFloat(String(valA).replace(',', '.'));
-        const numB = parseFloat(String(valB).replace(',', '.'));
+        const numA = parseFloat(valA.replace(',', '.'));
+        const numB = parseFloat(valB.replace(',', '.'));
         if (!isNaN(numA) && !isNaN(numB)) return sortAsc ? numA - numB : numB - numA;
-        return sortAsc ? String(valA).localeCompare(String(valB)) : String(valB).localeCompare(String(valA));
+        return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
     });
 }
 
 function actualizarTabla(reconstruirCabeceras = true) {
     const columnasAMostrar = todasLasColumnas.filter(col => columnasActivas.has(col));
-    const thead = document.getElementById('tableHead');
-    const tbody = document.getElementById('tableBody');
-
+    
     if (reconstruirCabeceras) {
+        const thead = document.getElementById('tableHead');
         const tr = document.createElement('tr');
         columnasAMostrar.forEach(col => {
             const th = document.createElement('th');
-            let icon = sortCol === col ? (sortAsc ? ' ↑' : ' ↓') : '';
-            th.innerHTML = `${col.replace(/_/g, ' ')} <span style="opacity:0.5">${icon}</span>`;
+            let icon = sortCol === col ? (sortAsc ? ' ▲' : ' ▼') : '';
+            th.innerHTML = `${col.replace(/_/g, ' ')} <span style="font-size:10px; color:#94a3b8">${icon}</span>`;
             th.onclick = () => ordenarTabla(col);
             tr.appendChild(th);
         });
         const thAccion = document.createElement('th');
-        thAccion.innerText = "Acciones";
+        thAccion.innerText = "Acción";
         tr.appendChild(thAccion);
         thead.innerHTML = '';
         thead.appendChild(tr);
     }
 
+    const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '';
-    const limit = 200;
+    
+    const limit = 400;
     const mostrar = baseDatosFiltrada.slice(0, limit);
     
     if (mostrar.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="${columnasAMostrar.length + 1}" style="text-align:center; padding:40px; color:#94a3b8;">No hay resultados con estos filtros.</td></tr>`;
+        const msj = document.getElementById('filtroMunicipio').value 
+            ? "No se encontraron inmuebles con los filtros aplicados." 
+            : "Selecciona un municipio en el desplegable superior para cargar los datos.";
+        tbody.innerHTML = `<tr><td colspan="${columnasAMostrar.length + 1}" style="text-align:center; padding:30px; color:#64748b;">${msj}</td></tr>`;
+        document.getElementById('footerInfo').innerText = '';
         return;
     }
 
+    const fragment = document.createDocumentFragment();
     mostrar.forEach(fila => {
         const tr = document.createElement('tr');
         columnasAMostrar.forEach(col => {
             const td = document.createElement('td');
-            let val = fila[col] || '-';
+            let val = fila[col] || '';
             if (col === 'Numero_Fijo') td.innerHTML = `<span class="badge">${val}</span>`;
             else td.innerText = val;
             tr.appendChild(td);
         });
         const tdAccion = document.createElement('td');
         const numFijo = fila['Numero_Fijo'] || '';
-        tdAccion.innerHTML = `<button class="btn-copy" onclick="copiar(this, '${numFijo}')"><i data-lucide="copy" size="14"></i> Copiar</button>`;
+        if (numFijo) tdAccion.innerHTML = `<button class="btn-copy" onclick="copiar(this, '${numFijo}')">Copiar Fijo</button>`;
         tr.appendChild(tdAccion);
-        tbody.appendChild(tr);
+        fragment.appendChild(tr);
     });
+    tbody.appendChild(fragment);
 
-    document.getElementById('footerInfo').innerHTML = `<i data-lucide="info" size="14"></i> Mostrando ${mostrar.length} de ${baseDatosFiltrada.length.toLocaleString()} inmuebles.`;
-    lucide.createIcons();
+    let msj = `Mostrando ${mostrar.length} resultados.`;
+    if (baseDatosFiltrada.length > limit) msj += ` (${baseDatosFiltrada.length.toLocaleString()} totales en este municipio).`;
+    document.getElementById('footerInfo').innerText = msj;
 }
 
 function copiar(boton, texto) {
     navigator.clipboard.writeText(texto).then(() => {
-        const originalHtml = boton.innerHTML;
-        boton.innerHTML = `<i data-lucide="check" size="14"></i> ¡Hecho!`;
-        boton.style.color = "var(--accent)";
-        boton.style.borderColor = "var(--accent)";
-        setTimeout(() => {
-            boton.innerHTML = originalHtml;
-            boton.style.color = "";
-            boton.style.borderColor = "";
-            lucide.createIcons();
-        }, 1000);
-        lucide.createIcons();
+        const prev = boton.innerText;
+        boton.innerText = "¡OK!";
+        boton.style.background = "#059669";
+        setTimeout(() => { boton.innerText = prev; boton.style.background = "#10b981"; }, 800);
     });
 }
 </script>
+
 </body>
 </html>
