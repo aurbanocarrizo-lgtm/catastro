@@ -173,7 +173,7 @@ async function alSeleccionarMunicipio() {
     // Uso de memoria Caché instantáneo (0s)
     if (cacheMunicipiosDescargados[archivoSeleccionado]) {
         baseDatosMunicipioActual = cacheMunicipiosDescargados[archivoSeleccionado];
-        aplicarFiltrosSecundarios();
+        aplicarFiltrosSecundarios(true);
         return;
     }
 
@@ -199,7 +199,7 @@ async function alSeleccionarMunicipio() {
 
         cacheMunicipiosDescargados[archivoSeleccionado] = baseDatosMunicipioActual;
         statusPanel.style.display = 'none';
-        aplicarFiltrosSecundarios();
+        aplicarFiltrosSecundarios(true);
 
     } catch (e) {
         console.error(e);
@@ -228,20 +228,25 @@ function generarCheckboxesColumnas() {
     });
 }
 
-function aplicarFiltrosSecundarios() {
+function aplicarFiltrosSecundarios(reconstruirCabeceras = false) {
     const calle = document.getElementById('filtroCalle').value.toUpperCase().trim();
     const portal = document.getElementById('filtroPortal').value.toUpperCase().trim();
     const planta = document.getElementById('filtroPlanta').value.toUpperCase().trim();
 
     baseDatosFiltrada = baseDatosMunicipioActual.filter(fila => {
-        if (calle && (!fila[COL_CALLE] || !fila[COL_CALLE].includes(calle))) return false;
-        if (portal && fila[COL_PORTAL] !== portal) return false;
-        if (planta && fila[COL_PLANTA] !== planta) return false;
+        // Convertimos el dato del JSON a string y a mayúsculas de forma segura
+        const valCalle = String(fila[COL_CALLE] || '').toUpperCase();
+        const valPortal = String(fila[COL_PORTAL] || '').toUpperCase();
+        const valPlanta = String(fila[COL_PLANTA] || '').toUpperCase();
+        
+        if (calle && !valCalle.includes(calle)) return false;
+        if (portal && valPortal !== portal) return false;
+        if (planta && valPlanta !== planta) return false;
         return true;
     });
 
     if (sortCol) aplicarOrdenacion();
-    actualizarTabla(false);
+    actualizarTabla(reconstruirCabeceras);
 }
 
 function ordenarTabla(colId) {
@@ -253,8 +258,8 @@ function ordenarTabla(colId) {
 
 function aplicarOrdenacion() {
     baseDatosFiltrada.sort((a, b) => {
-        let valA = a[sortCol] || '';
-        let valB = b[sortCol] || '';
+        let valA = String(a[sortCol] || '');
+        let valB = String(b[sortCol] || '');
         const numA = parseFloat(valA.replace(',', '.'));
         const numB = parseFloat(valB.replace(',', '.'));
         if (!isNaN(numA) && !isNaN(numB)) return sortAsc ? numA - numB : numB - numA;
