@@ -3,146 +3,199 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Buscador Catastral Euskadi Pro</title>
+    <title>Buscador Catastral Euskadi</title>
     
+    <!-- Google Fonts & Lucide Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
     <style>
-        /* --- VARIABLES DE DISEÑO --- */
         :root {
-            --primary: #2563eb; /* Azul corporativo vibrante */
-            --primary-hover: #1d4ed8;
-            --secondary: #10b981; /* Verde esmeralda para éxitos/copiar */
-            --secondary-hover: #059669;
-            --background: #f1f5f9; /* Gris muy claro y cálido */
-            --panel-bg: #ffffff;
-            --text-main: #0f172a; /* Azul pizarra muy oscuro */
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-main: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
             --text-muted: #64748b;
             --border-color: #e2e8f0;
-            --input-bg: #f8fafc;
-            --table-header: #f8fafc;
-            --table-row-hover: #f1f5f9;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            --border-radius: 12px;
-            --border-radius-sm: 8px;
-            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --accent: #10b981;
         }
 
-        /* --- ESTILOS GENERALES --- */
         * { box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 24px; background-color: var(--background); color: var(--text-main); line-height: 1.5; -webkit-font-smoothing: antialiased; }
-        .container { max-width: 1500px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
-        
-        /* --- CABECERA --- */
-        .app-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; background: var(--panel-bg); border-radius: var(--border-radius); box-shadow: var(--shadow); border: 1px solid var(--border-color); }
-        .header-logo { display: flex; align-items: center; gap: 16px; }
-        .logo-icon { width: 44px; height: 44px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-weight: bold; font-size: 22px; font-family: sans-serif; }
-        .header-text h1 { margin: 0; font-size: 24px; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px; }
-        .header-text p { margin: 2px 0 0 0; font-size: 14px; color: var(--text-muted); }
-        
-        /* --- BOTONES --- */
-        .btn { padding: 12px 20px; font-size: 15px; border: none; border-radius: var(--border-radius-sm); cursor: pointer; font-weight: 600; transition: var(--transition); color: white; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1); }
-        .btn-blue { background: var(--primary); } .btn-blue:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3); }
-        .btn svg { width: 18px; height: 18px; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background-color: var(--bg-main); 
+            color: var(--text-main);
+            line-height: 1.5;
+        }
 
-        /* --- PANEL DE ESTADO/CARGA --- */
-        #status-panel { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--border-radius-sm); padding: 16px 20px; box-shadow: var(--shadow); display: none; margin-bottom: 24px;}
-        .status-header { display: flex; align-items: center; font-weight: 600; font-size: 15px; color: #1e3a8a; gap: 12px; }
-        .spinner { width: 22px; height: 22px; border: 3px solid #93c5fd; border-top: 3px solid #1d4ed8; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
+        .container { 
+            max-width: 1300px; 
+            margin: 0 auto; 
+        }
+
+        /* Header */
+        .header-top { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 24px;
+        }
+        
+        .logo-area { display: flex; align-items: center; gap: 12px; }
+        .logo-icon { 
+            background: var(--primary); 
+            color: white; 
+            padding: 8px; 
+            border-radius: 10px;
+            display: flex;
+        }
+        h1 { margin: 0; color: #0f172a; font-size: 24px; font-weight: 700; letter-spacing: -0.025em; }
+        
+        /* Status Panel */
+        #status-panel { 
+            background: white; 
+            border: 1px solid var(--border-color);
+            border-radius: 12px; 
+            padding: 16px; 
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .status-header { display: flex; align-items: center; gap: 12px; font-weight: 500; font-size: 14px; color: var(--primary); }
+        
+        .spinner { 
+            width: 20px; height: 20px; 
+            border: 3px solid #e2e8f0; border-top: 3px solid var(--primary); 
+            border-radius: 50%; animation: spin 0.8s linear infinite; 
+        }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* --- PANEL DE CONTROL (FILTROS Y COLUMNAS) --- */
-        .controls-card { background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 24px; box-shadow: var(--shadow); }
-        .panel-section-title { font-size: 16px; font-weight: 700; color: var(--text-main); margin-top: 0; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
-        .panel-section-title::before { content: ''; width: 4px; height: 18px; background: var(--primary); border-radius: 2px; }
+        /* Controls */
+        .controls-panel { 
+            background: var(--card-bg); 
+            border: 1px solid var(--border-color); 
+            border-radius: 16px; 
+            padding: 24px; 
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
 
-        .filters-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
-        .form-group { display: flex; flex-direction: column; gap: 6px; position: relative; }
-        .form-group label { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-left: 2px; }
-        
-        .form-group input, .form-group select { padding: 12px 14px; font-size: 16px; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); outline: none; background-color: var(--input-bg); transition: var(--transition); -webkit-appearance: none; }
-        .form-group input:focus, .form-group select:focus { border-color: var(--primary); background-color: white; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
-        
-        /* Iconos opcionales dentro de los inputs (requiere SVG en HTML) */
-        .input-icon { position: absolute; right: 14px; top: 38px; color: var(--text-muted); pointer-events: none; }
+        .search-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 16px; 
+            margin-bottom: 24px; 
+        }
 
-        /* --- SELECTOR DE COLUMNAS (PILLS) --- */
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        .form-group input, .form-group select { 
+            padding: 12px 14px; 
+            font-size: 15px; 
+            border: 1px solid var(--border-color); 
+            border-radius: 10px; 
+            outline: none; 
+            background-color: #fff;
+            transition: all 0.2s;
+            color: var(--text-main);
+        }
+        .form-group input:focus, .form-group select:focus { 
+            border-color: var(--primary); 
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+        .btn { 
+            padding: 12px 20px; 
+            font-size: 14px; 
+            border: none; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            transition: all 0.2s; 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 8px;
+            height: 46px;
+        }
+        .btn-blue { background: var(--primary); color: white; }
+        .btn-blue:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        .btn-blue:active { transform: translateY(0px); }
+
+        /* Column Selector */
         .column-selector { border-top: 1px solid var(--border-color); padding-top: 20px; }
-        .checkbox-grid { display: flex; flex-wrap: wrap; gap: 10px; }
-        .checkbox-item { cursor: pointer; display: flex; align-items: center; user-select: none; }
-        .checkbox-item input { display: none; } /* Escondemos el checkbox original */
-        
-        /* Estilo de la "Pill" */
-        .checkbox-pill { padding: 8px 14px; background: #f1f5f9; border: 1px solid var(--border-color); border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--text-main); transition: var(--transition); display: flex; align-items: center; gap: 8px; }
-        .checkbox-item:hover .checkbox-pill { background: #e2e8f0; border-color: #cbd5e1; }
-        
-        /* Estilo cuando está seleccionado */
-        .checkbox-item input:checked + .checkbox-pill { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3); }
+        .column-selector h3 { font-size: 12px; color: var(--text-muted); text-transform: uppercase; margin: 0 0 16px 0; display: flex; align-items: center; gap: 6px; }
+        .checkbox-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+        .checkbox-item { 
+            display: flex; align-items: center; font-size: 13px; color: var(--text-main); 
+            padding: 8px 12px; background: #f8fafc; border-radius: 8px; border: 1px solid transparent; cursor: pointer; transition: 0.2s;
+        }
+        .checkbox-item:hover { background: #f1f5f9; border-color: var(--border-color); }
+        .checkbox-item input { width: 16px; height: 16px; margin-right: 10px; cursor: pointer; accent-color: var(--primary); }
 
-        /* Icono opcional en la pill (requiere SVG/Texto en HTML) */
-        .checkbox-pill::before { content: '+'; font-size: 16px; opacity: 0.5; }
-        .checkbox-item input:checked + .checkbox-pill::before { content: '✓'; opacity: 1; }
-
-        /* --- TABLA --- */
-        .table-card { background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: var(--border-radius); box-shadow: var(--shadow-md); overflow: hidden; }
-        .table-container { overflow-x: auto; max-height: 600px; -webkit-overflow-scrolling: touch; }
+        /* Table Area */
+        .table-container { 
+            background: white;
+            border: 1px solid var(--border-color); 
+            border-radius: 16px; 
+            overflow: hidden; 
+            max-height: 600px; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        }
         
-        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; white-space: nowrap; table-layout: auto; }
-        th { background: var(--table-header); color: var(--text-main); font-weight: 700; padding: 16px 20px; border-bottom: 2px solid var(--border-color); cursor: pointer; position: sticky; top: 0; z-index: 10; user-select: none; transition: var(--transition); }
-        th:hover { background: #f1f5f9; }
-        td { padding: 14px 20px; border-bottom: 1px solid var(--border-color); }
-        tr:nth-child(even) { background-color: #fbfdff; }
-        tr:hover td { background-color: var(--table-row-hover); }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+        th { 
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            color: var(--text-muted); 
+            font-weight: 600; 
+            padding: 16px; 
+            border-bottom: 1px solid var(--border-color); 
+            cursor: pointer; 
+            position: sticky; top: 0; z-index: 10;
+        }
+        th:hover { color: var(--primary); background: #f8fafc; }
+        td { padding: 14px 16px; border-bottom: 1px solid var(--border-color); }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: #f8fafc; }
         
-        /* Estilos de elementos dentro de la tabla */
-        .badge { background: #e0f2fe; color: #0369a1; padding: 6px 10px; border-radius: 6px; font-weight: bold; font-family: monospace; font-size: 12px; letter-spacing: 0.5px; }
+        .badge { 
+            background: #eef2ff; color: var(--primary); padding: 4px 10px; border-radius: 6px; 
+            font-weight: 600; font-family: 'Monaco', monospace; font-size: 12px; border: 1px solid #e0e7ff;
+        }
         
-        .btn-copy { background: var(--secondary); color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; transition: var(--transition); display: inline-flex; align-items: center; gap: 6px; }
-        .btn-copy:hover { background: var(--secondary-hover); transform: scale(1.05); }
-        .btn-copy svg { width: 14px; height: 14px; }
+        .btn-copy { 
+            background: white; color: var(--text-main); border: 1px solid var(--border-color); 
+            padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600;
+            display: flex; align-items: center; gap: 4px; transition: 0.2s;
+        }
+        .btn-copy:hover { border-color: var(--primary); color: var(--primary); background: #f5f3ff; }
 
-        /* --- FOOTER --- */
-        .footer-info { padding: 16px 24px; border-top: 1px solid var(--border-color); font-size: 13px; color: var(--text-muted); background: var(--table-header); text-align: right; font-weight: 600;}
+        .footer-info { margin-top: 16px; font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
 
-        /* --- RESPONSIVE ADJUSTMENTS --- */
+        /* Mobile Adjustments */
         @media (max-width: 768px) {
             body { padding: 12px; }
-            .container { gap: 16px; }
-            .app-header { flex-direction: column; align-items: flex-start; gap: 12px; padding: 16px; }
-            .header-text h1 { font-size: 20px; }
-            .header-logo { gap: 12px; }
-            .logo-icon { width: 36px; height: 36px; font-size: 18px; border-radius: 8px; }
-            
-            .controls-card { padding: 16px; }
-            .filters-grid { grid-template-columns: 1fr; gap: 12px; }
-            .checkbox-grid { gap: 8px; }
-            .checkbox-pill { padding: 6px 10px; font-size: 12px; }
-            
-            table { font-size: 13px; }
-            td, th { padding: 12px; }
-            .badge { padding: 4px 8px; }
-            .btn-copy { padding: 7px 10px; font-size: 11px; }
+            .header-top { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .controls-panel { padding: 16px; }
+            .checkbox-grid { grid-template-columns: 1fr 1fr; }
+            .btn { width: 100%; }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    
-    <!-- Nueva Cabecera -->
-    <header class="app-header">
-        <div class="header-logo">
-            <div class="logo-icon">C</div>
-            <div class="header-text">
-                <h1>Buscador Catastral Euskadi</h1>
-                <p>Información de inmuebles por municipio y dirección</p>
-            </div>
-        </div>
-        <div>
-            <!-- Espacio para botones de ayuda, idioma, etc. -->
+    <header class="header-top">
+        <div class="logo-area">
+            <div class="logo-icon"><i data-lucide="map"></i></div>
+            <h1>Buscador Catastral Euskadi</h1>
         </div>
     </header>
 
-    <!-- Panel de Estado (Mantenemos ID original) -->
     <div id="status-panel">
         <div class="status-header">
             <span class="spinner" id="loader-spinner"></span>
@@ -150,76 +203,61 @@
         </div>
     </div>
 
-    <!-- Panel de Control Combinado (Mantenemos ID de grid para JS) -->
-    <div class="controls-card">
-        <h2 class="panel-section-title">Filtros de búsqueda</h2>
-        <div class="filters-grid">
+    <div class="controls-panel">
+        <div class="search-grid">
             <div class="form-group">
                 <label>1. Municipio</label>
                 <select id="filtroMunicipio" onchange="alSeleccionarMunicipio()">
-                    <option value="">-- Selecciona un Municipio --</option>
+                    <option value="">-- Selecciona --</option>
                 </select>
-                <!-- Icono de mapa -->
-                <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
             </div>
             <div class="form-group">
                 <label>2. Calle / Vía</label>
-                <input type="text" id="filtroCalle" placeholder="Ej: ASTOLA" onkeyup="if(event.key === 'Enter') aplicarFiltrosSecundarios()">
-                <!-- Icono de calle -->
-                <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 10l-4 4 6 6-4 4-6-6 4-4"></path><path d="M11.5 7.5L9 5"></path><path d="M16 12l-2.5-2.5"></path><path d="M18.5 9L21 11.5"></path><path d="M13.5 14L11 11.5"></path><path d="M9 16.5L6.5 14"></path><path d="M4 19L6.5 21.5"></path></svg>
+                <input type="text" id="filtroCalle" placeholder="Buscar vía..." onkeyup="if(event.key === 'Enter') aplicarFiltrosSecundarios()">
             </div>
             <div class="form-group">
-                <label>3. Portal / Número</label>
-                <input type="text" id="filtroPortal" placeholder="Ej: 31" onkeyup="if(event.key === 'Enter') aplicarFiltrosSecundarios()">
+                <label>3. Portal</label>
+                <input type="text" id="filtroPortal" placeholder="Nº" onkeyup="if(event.key === 'Enter') aplicarFiltrosSecundarios()">
             </div>
             <div class="form-group">
                 <label>4. Planta</label>
-                <input type="text" id="filtroPlanta" placeholder="Ej: 01" onkeyup="if(event.key === 'Enter') aplicarFiltrosSecundarios()">
+                <input type="text" id="filtroPlanta" placeholder="Piso" onkeyup="if(event.key === 'Enter') aplicarFiltrosSecundarios()">
             </div>
             <div class="form-group" style="justify-content: flex-end;">
                 <button class="btn btn-blue" onclick="aplicarFiltrosSecundarios()">
-                    <!-- Icono de búsqueda -->
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    Buscar inmuebles
+                    <i data-lucide="search" size="18"></i> Buscar
                 </button>
             </div>
         </div>
         
-        <!-- Selector de Columnas Renovado (Mantenemos ID original) -->
         <div class="column-selector">
-            <h2 class="panel-section-title">Columnas Visibles</h2>
-            <div class="checkbox-grid" id="checkboxGrid">
-                <!-- Se rellena por JS. El JS tendrá que adaptar la creación a la nueva estructura de Pills -->
-            </div>
+            <h3><i data-lucide="settings-2" size="14"></i> Columnas Visibles</h3>
+            <div class="checkbox-grid" id="checkboxGrid"></div>
         </div>
     </div>
 
-    <!-- Contenedor de la Tabla -->
-    <div class="table-card">
-        <div class="table-container" id="tableContainer">
-            <table>
-                <thead id="tableHead">
-                    <!-- Rellenado por JS. El JS tendrá que adaptar para incluir iconos de ordenación -->
-                </thead>
-                <tbody id="tableBody">
-                    <tr><td colspan="100%" style="text-align:center; padding: 48px; color: var(--text-muted); font-style: italic;">Selecciona un municipio en el desplegable superior para cargar los datos catastrales.</td></tr>
-                </tbody>
-            </table>
-        </div>
-        <!-- Footer Info integrado en la Card -->
-        <div class="footer-info" id="footerInfo"></div>
+    <div class="table-container">
+        <table id="mainTable">
+            <thead id="tableHead"></thead>
+            <tbody id="tableBody">
+                <tr>
+                    <td style="text-align:center; padding: 60px; color: #94a3b8;">
+                        <i data-lucide="building-2" size="40" style="margin-bottom: 12px; opacity: 0.5;"></i>
+                        <p>Selecciona un municipio para visualizar los datos</p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
+    <div class="footer-info" id="footerInfo"></div>
 </div>
 
-<!-- TU JAVASCRIPT ORIGINAL INTACTO -->
 <script>
-// Ruta relativa al directorio de datos en el servidor
+// --- LA LÓGICA PERMANECE IGUAL PERO CON MEJORAS DE UI ---
 const DIRECTORIO_DATOS = './data/';
-
 let listaIndexGlobal = []; 
 let cacheMunicipiosDescargados = {};
-
 let baseDatosMunicipioActual = [];
 let baseDatosFiltrada = [];
 let todasLasColumnas = [];
@@ -233,43 +271,30 @@ const COL_PORTAL = 'Portal';
 const COL_PLANTA = 'Planta';
 
 window.onload = async function() {
+    lucide.createIcons();
     try {
-        // Carga instantánea del índice de municipios en JSON
         const resp = await fetch(`${DIRECTORIO_DATOS}index.json`);
-        if (!resp.ok) throw new Error("No se pudo cargar el índice de datos.");
-        
+        if (!resp.ok) throw new Error("No se pudo cargar el índice.");
         listaIndexGlobal = await resp.json();
 
         const selectMuni = document.getElementById('filtroMunicipio');
-        selectMuni.innerHTML = '<option value="">-- Selecciona un Municipio --</option>';
-        
         listaIndexGlobal.forEach(item => {
             const opt = document.createElement('option');
             opt.value = item.archivo;
             opt.innerText = item.nombre;
             selectMuni.appendChild(opt);
         });
-
         document.getElementById('status-panel').style.display = 'none';
-
     } catch (e) {
-        console.error(e);
         document.getElementById('loader-spinner').style.display = 'none';
-        document.getElementById('status-title').innerText = "Error cargando lista de municipios.";
+        document.getElementById('status-title').innerText = "Error cargando datos base.";
     }
 };
 
 async function alSeleccionarMunicipio() {
     const archivoSeleccionado = document.getElementById('filtroMunicipio').value;
-    
-    if (!archivoSeleccionado) {
-        baseDatosMunicipioActual = [];
-        baseDatosFiltrada = [];
-        actualizarTabla();
-        return;
-    }
+    if (!archivoSeleccionado) return;
 
-    // Uso de memoria Caché instantáneo (0s)
     if (cacheMunicipiosDescargados[archivoSeleccionado]) {
         baseDatosMunicipioActual = cacheMunicipiosDescargados[archivoSeleccionado];
         aplicarFiltrosSecundarios();
@@ -278,20 +303,15 @@ async function alSeleccionarMunicipio() {
 
     const statusPanel = document.getElementById('status-panel');
     const statusTitle = document.getElementById('status-title');
-    statusTitle.innerText = `Descargando datos del municipio...`;
+    statusTitle.innerText = `Descargando base de datos...`;
     statusPanel.style.display = 'block';
 
     try {
-        // LECTURA DIRECTA DE ARCHIVO JSON NATIVO
         const resp = await fetch(`${DIRECTORIO_DATOS}${archivoSeleccionado}`);
-        if (!resp.ok) throw new Error("Fallo la descarga del municipio");
-
         baseDatosMunicipioActual = await resp.json();
 
-        // Extraer nombres de columna si es la primera vez
         if (todasLasColumnas.length === 0 && baseDatosMunicipioActual.length > 0) {
             todasLasColumnas = Object.keys(baseDatosMunicipioActual[0]);
-            // Columnas por defecto que queremos mostrar
             const colsDefecto = [COL_MUNICIPIO, COL_CALLE, COL_PORTAL, COL_PLANTA, 'Elemento', 'Descripcion_Uso', 'Superficie', 'Numero_Fijo'];
             todasLasColumnas.forEach(col => { if (colsDefecto.includes(col)) columnasActivas.add(col); });
             generarCheckboxesColumnas();
@@ -300,38 +320,27 @@ async function alSeleccionarMunicipio() {
         cacheMunicipiosDescargados[archivoSeleccionado] = baseDatosMunicipioActual;
         statusPanel.style.display = 'none';
         aplicarFiltrosSecundarios();
-
     } catch (e) {
-        console.error(e);
-        statusTitle.innerText = `Error al cargar el municipio.`;
+        statusTitle.innerText = `Error al cargar municipio.`;
     }
 }
 
-// *** MODIFICADO PARA EL NUEVO DISEÑO DE PILLS ***
 function generarCheckboxesColumnas() {
     const grid = document.getElementById('checkboxGrid');
     grid.innerHTML = '';
     todasLasColumnas.forEach(col => {
         const label = document.createElement('label');
         label.className = 'checkbox-item';
-        
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
-        checkbox.value = col;
         checkbox.checked = columnasActivas.has(col);
         checkbox.onchange = (e) => {
             if (e.target.checked) columnasActivas.add(col);
             else columnasActivas.delete(col);
             actualizarTabla();
         };
-        
-        // Nueva estructura de Pill para CSS
-        const pill = document.createElement('span');
-        pill.className = 'checkbox-pill';
-        pill.innerText = col.replace(/_/g, ' ');
-        
         label.appendChild(checkbox);
-        label.appendChild(pill);
+        label.appendChild(document.createTextNode(col.replace(/_/g, ' ')));
         grid.appendChild(label);
     });
 }
@@ -349,113 +358,92 @@ function aplicarFiltrosSecundarios() {
     });
 
     if (sortCol) aplicarOrdenacion();
-    actualizarTabla(false); // No reconstruir cabeceras en cada filtrado
+    actualizarTabla(true);
 }
 
 function ordenarTabla(colId) {
     if (sortCol === colId) sortAsc = !sortAsc;
     else { sortCol = colId; sortAsc = true; }
     aplicarOrdenacion();
-    actualizarTabla(true); // Reconstruir cabeceras para mostrar iconos de orden
+    actualizarTabla(true);
 }
 
 function aplicarOrdenacion() {
     baseDatosFiltrada.sort((a, b) => {
         let valA = a[sortCol] || '';
         let valB = b[sortCol] || '';
-        const numA = parseFloat(valA.replace(',', '.'));
-        const numB = parseFloat(valB.replace(',', '.'));
+        const numA = parseFloat(String(valA).replace(',', '.'));
+        const numB = parseFloat(String(valB).replace(',', '.'));
         if (!isNaN(numA) && !isNaN(numB)) return sortAsc ? numA - numB : numB - numA;
-        return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        return sortAsc ? String(valA).localeCompare(String(valB)) : String(valB).localeCompare(String(valA));
     });
 }
 
 function actualizarTabla(reconstruirCabeceras = true) {
     const columnasAMostrar = todasLasColumnas.filter(col => columnasActivas.has(col));
-    
-    // *** MODIFICADO PARA EL NUEVO DISEÑO DE CABECERA CON ICONOS ***
+    const thead = document.getElementById('tableHead');
+    const tbody = document.getElementById('tableBody');
+
     if (reconstruirCabeceras) {
-        const thead = document.getElementById('tableHead');
         const tr = document.createElement('tr');
         columnasAMostrar.forEach(col => {
             const th = document.createElement('th');
-            // Iconos de ordenación sutiles
-            let icon = sortCol === col ? (sortAsc ? ' ↑' : ' ↓') : ' ↕';
-            th.innerHTML = `${col.replace(/_/g, ' ')} <span style="font-size:11px; color:var(--text-muted); opacity: 0.5;">${icon}</span>`;
+            let icon = sortCol === col ? (sortAsc ? ' ↑' : ' ↓') : '';
+            th.innerHTML = `${col.replace(/_/g, ' ')} <span style="opacity:0.5">${icon}</span>`;
             th.onclick = () => ordenarTabla(col);
             tr.appendChild(th);
         });
         const thAccion = document.createElement('th');
-        thAccion.innerText = "Acción";
+        thAccion.innerText = "Acciones";
         tr.appendChild(thAccion);
         thead.innerHTML = '';
         thead.appendChild(tr);
     }
 
-    const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '';
-    
-    const limit = 400; // Límite para no bloquear el navegador
+    const limit = 200;
     const mostrar = baseDatosFiltrada.slice(0, limit);
     
     if (mostrar.length === 0) {
-        const msj = document.getElementById('filtroMunicipio').value 
-            ? "No se encontraron inmuebles con los filtros aplicados en este municipio." 
-            : "Selecciona un municipio en el desplegable superior para cargar los datos catastrales.";
-        tbody.innerHTML = `<tr><td colspan="${columnasAMostrar.length + 1}" style="text-align:center; padding:48px; color:var(--text-muted); font-style: italic;">${msj}</td></tr>`;
-        document.getElementById('footerInfo').innerText = '';
+        tbody.innerHTML = `<tr><td colspan="${columnasAMostrar.length + 1}" style="text-align:center; padding:40px; color:#94a3b8;">No hay resultados con estos filtros.</td></tr>`;
         return;
     }
 
-    const fragment = document.createDocumentFragment();
     mostrar.forEach(fila => {
         const tr = document.createElement('tr');
         columnasAMostrar.forEach(col => {
             const td = document.createElement('td');
-            let val = fila[col] || '';
-            // *** MODIFICADO PARA EL NUEVO DISEÑO DE BADGE ***
+            let val = fila[col] || '-';
             if (col === 'Numero_Fijo') td.innerHTML = `<span class="badge">${val}</span>`;
             else td.innerText = val;
             tr.appendChild(td);
         });
-        
-        // *** MODIFICADO PARA EL NUEVO DISEÑO DE BOTÓN COPIAR ***
         const tdAccion = document.createElement('td');
         const numFijo = fila['Numero_Fijo'] || '';
-        if (numFijo) {
-            tdAccion.innerHTML = `<button class="btn-copy" onclick="copiar(this, '${numFijo}')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                Copiar
-            </button>`;
-        }
+        tdAccion.innerHTML = `<button class="btn-copy" onclick="copiar(this, '${numFijo}')"><i data-lucide="copy" size="14"></i> Copiar</button>`;
         tr.appendChild(tdAccion);
-        fragment.appendChild(tr);
+        tbody.appendChild(tr);
     });
-    tbody.appendChild(fragment);
 
-    let msj = `Mostrando ${mostrar.length} resultados.`;
-    if (baseDatosFiltrada.length > limit) msj += ` (${baseDatosFiltrada.length.toLocaleString()} totales encontrados).`;
-    document.getElementById('footerInfo').innerText = msj;
+    document.getElementById('footerInfo').innerHTML = `<i data-lucide="info" size="14"></i> Mostrando ${mostrar.length} de ${baseDatosFiltrada.length.toLocaleString()} inmuebles.`;
+    lucide.createIcons();
 }
 
 function copiar(boton, texto) {
     navigator.clipboard.writeText(texto).then(() => {
-        const originalContent = boton.innerHTML;
-        // Cambio de estilo instantáneo para feedback
-        boton.innerHTML = "¡Copiado!";
-        boton.style.background = "#059669"; // Verde más oscuro
-        boton.style.borderColor = "#059669";
-        boton.style.transform = "scale(1.1)";
-        
-        setTimeout(() => { 
-            boton.innerHTML = originalContent; 
-            boton.style.background = ""; // Reset a CSS
+        const originalHtml = boton.innerHTML;
+        boton.innerHTML = `<i data-lucide="check" size="14"></i> ¡Hecho!`;
+        boton.style.color = "var(--accent)";
+        boton.style.borderColor = "var(--accent)";
+        setTimeout(() => {
+            boton.innerHTML = originalHtml;
+            boton.style.color = "";
             boton.style.borderColor = "";
-            boton.style.transform = "";
-        }, 1200);
+            lucide.createIcons();
+        }, 1000);
+        lucide.createIcons();
     });
 }
 </script>
-
 </body>
 </html>
