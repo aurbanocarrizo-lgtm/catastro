@@ -208,7 +208,7 @@ async function alSeleccionarMunicipio() {
     if (!muniNombre) {
         baseDatosMunicipioActual = [];
         baseDatosFiltrada = [];
-        actualizarTabla();
+        actualizarTabla(true);
         return;
     }
 
@@ -260,7 +260,7 @@ async function alSeleccionarMunicipio() {
         if (todasLasColumnas.length === 0 && baseDatosMunicipioActual.length > 0) {
             todasLasColumnas = Object.keys(baseDatosMunicipioActual[0]);
             
-            // AHORA ACTIVAMOS TODAS LAS COLUMNAS POR DEFECTO
+            // ACTIVAMOS TODAS LAS COLUMNAS SIN EXCEPCIÓN
             todasLasColumnas.forEach(col => columnasActivas.add(col));
             
             generarCheckboxesColumnas();
@@ -268,6 +268,8 @@ async function alSeleccionarMunicipio() {
 
         cacheMunicipiosDescargados[muniNombre] = baseDatosMunicipioActual;
         statusPanel.style.display = 'none';
+        
+        // Ejecuta los filtros y fuerza la reconstrucción de las cabeceras de la tabla
         aplicarFiltrosSecundarios();
 
     } catch (e) {
@@ -289,7 +291,7 @@ function generarCheckboxesColumnas() {
         checkbox.onchange = (e) => {
             if (e.target.checked) columnasActivas.add(col);
             else columnasActivas.delete(col);
-            actualizarTabla();
+            actualizarTabla(true); // Forzamos siempre a TRUE para reconstruir bien la tabla
         };
         label.appendChild(checkbox);
         label.appendChild(document.createTextNode(col.replace(/_/g, ' ')));
@@ -310,14 +312,16 @@ function aplicarFiltrosSecundarios() {
     });
 
     if (sortCol) aplicarOrdenacion();
-    actualizarTabla(false);
+    
+    // El fallo estaba aquí: le hemos puesto "true" para que siempre dibuje la cabecera.
+    actualizarTabla(true);
 }
 
 function ordenarTabla(colId) {
     if (sortCol === colId) sortAsc = !sortAsc;
     else { sortCol = colId; sortAsc = true; }
     aplicarOrdenacion();
-    actualizarTabla(false);
+    actualizarTabla(true);
 }
 
 function aplicarOrdenacion() {
