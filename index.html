@@ -115,7 +115,6 @@
 </div>
 
 <script>
-// Ruta relativa al directorio de datos en el servidor
 const DIRECTORIO_DATOS = './data/';
 
 let listaIndexGlobal = []; 
@@ -135,7 +134,6 @@ const COL_PLANTA = 'Planta';
 
 window.onload = async function() {
     try {
-        // Carga instantánea del índice de municipios en JSON
         const resp = await fetch(`${DIRECTORIO_DATOS}index.json`);
         if (!resp.ok) throw new Error("No se pudo cargar el índice de datos.");
         
@@ -146,7 +144,7 @@ window.onload = async function() {
         
         listaIndexGlobal.forEach(item => {
             const opt = document.createElement('option');
-            opt.value = item.archivo;
+            opt.value = item.nombre;
             opt.innerText = item.nombre;
             selectMuni.appendChild(opt);
         });
@@ -161,35 +159,37 @@ window.onload = async function() {
 };
 
 async function alSeleccionarMunicipio() {
-    const archivoSeleccionado = document.getElementById('filtroMunicipio').value;
+    const muniNombre = document.getElementById('filtroMunicipio').value;
     
-    if (!archivoSeleccionado) {
+    if (!muniNombre) {
         baseDatosMunicipioActual = [];
         baseDatosFiltrada = [];
         actualizarTabla();
         return;
     }
 
-    // Uso de memoria Caché instantáneo (0s)
-    if (cacheMunicipiosDescargados[archivoSeleccionado]) {
-        baseDatosMunicipioActual = cacheMunicipiosDescargados[archivoSeleccionado];
+    if (cacheMunicipiosDescargados[muniNombre]) {
+        baseDatosMunicipioActual = cacheMunicipiosDescargados[muniNombre];
         aplicarFiltrosSecundarios();
         return;
     }
 
+    const itemMuni = listaIndexGlobal.find(m => m.nombre === muniNombre);
+    if (!itemMuni || !itemMuni.archivos) return;
+
     const statusPanel = document.getElementById('status-panel');
     const statusTitle = document.getElementById('status-title');
-    statusTitle.innerText = `Cargando datos...`;
+    statusTitle.innerText = `Cargando datos de ${muniNombre}...`;
     statusPanel.style.display = 'block';
 
     try {
-        // LECTURA DIRECTA DE ARCHIVO JSON NATIVO
-        const resp = await fetch(`${DIRECTORIO_DATOS}${archivoSeleccionado}`);
-        if (!resp.ok) throw new Error("Fallo la descarga del municipio");
+        const promesas = itemMuni.archivos.map(arc => 
+            fetch(`${DIRECTORIO_DATOS}${arc}`).then(r => r.json())
+        );
 
-        baseDatosMunicipioActual = await resp.json();
+        const partesDescargadas = await Promise.all(promesas);
+        baseDatosMunicipioActual = partesDescargadas.flat();
 
-        // Extraer nombres de columna si es la primera vez
         if (todasLasColumnas.length === 0 && baseDatosMunicipioActual.length > 0) {
             todasLasColumnas = Object.keys(baseDatosMunicipioActual[0]);
             const colsDefecto = [COL_MUNICIPIO, COL_CALLE, COL_PORTAL, COL_PLANTA, 'Elemento', 'Descripcion_Uso', 'Superficie', 'Numero_Fijo'];
@@ -197,7 +197,7 @@ async function alSeleccionarMunicipio() {
             generarCheckboxesColumnas();
         }
 
-        cacheMunicipiosDescargados[archivoSeleccionado] = baseDatosMunicipioActual;
+        cacheMunicipiosDescargados[muniNombre] = baseDatosMunicipioActual;
         statusPanel.style.display = 'none';
         aplicarFiltrosSecundarios();
 
