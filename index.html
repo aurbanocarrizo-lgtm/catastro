@@ -21,6 +21,11 @@
         .spinner { width: 18px; height: 18px; border: 3px solid #93c5fd; border-top: 3px solid #1d4ed8; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; margin-right: 10px; vertical-align: middle; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+        /* Panel de errores mejorado */
+        #error-panel { display: none; background: #fef2f2; border: 1px solid #f87171; border-left: 4px solid #ef4444; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; color: #991b1b; font-size: 13px; }
+        #error-panel strong { display: block; font-size: 14px; margin-bottom: 4px; }
+        .debug-info { font-family: monospace; background: #fee2e2; padding: 8px; border-radius: 4px; margin-top: 8px; white-space: pre-wrap; word-break: break-all; font-size: 11px; }
+
         .controls-panel { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
         .search-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid #e2e8f0; }
         .form-group { display: flex; flex-direction: column; }
@@ -70,6 +75,13 @@
         <div class="status-header">
             <span><span class="spinner" id="loader-spinner"></span><span id="status-title">Iniciando aplicación...</span></span>
         </div>
+    </div>
+
+    <!-- Nuevo panel de errores -->
+    <div id="error-panel">
+        <strong id="error-title">Error</strong>
+        <span id="error-message"></span>
+        <div class="debug-info" id="error-debug"></div>
     </div>
 
     <div class="controls-panel">
@@ -133,11 +145,35 @@ const COL_CALLE = 'Calle';
 const COL_PORTAL = 'Portal';
 const COL_PLANTA = 'Planta';
 
+function mostrarError(titulo, mensaje, debugInfo = '') {
+    const panel = document.getElementById('error-panel');
+    document.getElementById('error-title').innerText = titulo;
+    document.getElementById('error-message').innerText = mensaje;
+    
+    const debugDiv = document.getElementById('error-debug');
+    if (debugInfo) {
+        debugDiv.style.display = 'block';
+        debugDiv.innerText = debugInfo;
+    } else {
+        debugDiv.style.display = 'none';
+    }
+    
+    panel.style.display = 'block';
+    document.getElementById('status-panel').style.display = 'none';
+}
+
+function ocultarError() {
+    document.getElementById('error-panel').style.display = 'none';
+}
+
 window.onload = async function() {
+    ocultarError();
+    const urlIndex = `${DIRECTORIO_DATOS}index.json`;
     try {
-        // Carga instantánea del índice de municipios en JSON
-        const resp = await fetch(`${DIRECTORIO_DATOS}index.json`);
-        if (!resp.ok) throw new Error("No se pudo cargar el índice de datos.");
+        const resp = await fetch(urlIndex);
+        if (!resp.ok) {
+            throw new Error(`HTTP ${resp.status}: ${resp.statusText}. Error al cargar: ${urlIndex}`);
+        }
         
         listaIndexGlobal = await resp.json();
 
@@ -155,12 +191,12 @@ window.onload = async function() {
 
     } catch (e) {
         console.error(e);
-        document.getElementById('loader-spinner').style.display = 'none';
-        document.getElementById('status-title').innerText = "Error cargando lista de municipios.";
+        mostrarError("Error al iniciar", "No se pudo cargar el archivo índice de los municipios.", e.message || e.toString());
     }
 };
 
 async function alSeleccionarMunicipio() {
+    ocultarError();
     const archivoSeleccionado = document.getElementById('filtroMunicipio').value;
     
     if (!archivoSeleccionado) {
@@ -170,7 +206,6 @@ async function alSeleccionarMunicipio() {
         return;
     }
 
-    // Uso de memoria Caché instantáneo (0s)
     if (cacheMunicipiosDescargados[archivoSeleccionado]) {
         baseDatosMunicipioActual = cacheMunicipiosDescargados[archivoSeleccionado];
         aplicarFiltrosSecundarios(true);
@@ -182,14 +217,23 @@ async function alSeleccionarMunicipio() {
     statusTitle.innerText = `Cargando datos...`;
     statusPanel.style.display = 'block';
 
+    const urlMunicipio = `${DIRECTORIO_DATOS}${archivoSeleccionado}`;
+
     try {
-        // LECTURA DIRECTA DE ARCHIVO JSON NATIVO
-        const resp = await fetch(`${DIRECTORIO_DATOS}${archivoSeleccionado}`);
-        if (!resp.ok) throw new Error("Fallo la descarga del municipio");
+        const resp = await fetch(urlMunicipio);
+        if (!resp.ok) {
+            throw new Error(`HTTP ${resp.status}: ${resp.statusText}. Error al cargar: ${urlMunicipio}`);
+        }
 
-        baseDatosMunicipioActual = await resp.json();
+        const textoBruto = await resp.text(); 
+        
+        // Intentamos parsear manualmente para capturar errores de formato JSON
+        try {
+            baseDatosMunicipioActual = JSON.parse(textoBruto);
+        } catch (jsonErr) {
+            throw new Error(`El archivo descargado no es un JSON válido. Revisa el archivo ${archivoSeleccionado}. Detalles: ${jsonErr.message}`);
+        }
 
-        // Extraer nombres de columna si es la primera vez
         if (todasLasColumnas.length === 0 && baseDatosMunicipioActual.length > 0) {
             todasLasColumnas = Object.keys(baseDatosMunicipioActual[0]);
             const colsDefecto = [COL_MUNICIPIO, COL_CALLE, COL_PORTAL, COL_PLANTA, 'Elemento', 'Descripcion_Uso', 'Superficie', 'Numero_Fijo'];
@@ -203,7 +247,7 @@ async function alSeleccionarMunicipio() {
 
     } catch (e) {
         console.error(e);
-        statusTitle.innerText = `Error al cargar el municipio.`;
+        mostrarError("Error al cargar el municipio", "Hubo un problema descargando o leyendo los datos del municipio.", e.message || e.toString());
     }
 }
 
@@ -234,7 +278,6 @@ function aplicarFiltrosSecundarios(reconstruirCabeceras = false) {
     const planta = document.getElementById('filtroPlanta').value.toUpperCase().trim();
 
     baseDatosFiltrada = baseDatosMunicipioActual.filter(fila => {
-        // Convertimos el dato del JSON a string y a mayúsculas de forma segura
         const valCalle = String(fila[COL_CALLE] || '').toUpperCase();
         const valPortal = String(fila[COL_PORTAL] || '').toUpperCase();
         const valPlanta = String(fila[COL_PLANTA] || '').toUpperCase();
