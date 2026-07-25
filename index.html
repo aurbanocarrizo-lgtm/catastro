@@ -258,18 +258,21 @@ async function alSeleccionarMunicipio() {
         baseDatosMunicipioActual = partesDescargadas.flat();
 
         if (todasLasColumnas.length === 0 && baseDatosMunicipioActual.length > 0) {
-            todasLasColumnas = Object.keys(baseDatosMunicipioActual[0]);
+            // SOLUCIÓN: Escanear TODOS los inmuebles para recolectar las columnas, no solo el primero.
+            let setDeColumnas = new Set();
+            baseDatosMunicipioActual.forEach(fila => {
+                Object.keys(fila).forEach(k => setDeColumnas.add(k));
+            });
             
-            // ACTIVAMOS TODAS LAS COLUMNAS SIN EXCEPCIÓN
+            todasLasColumnas = Array.from(setDeColumnas);
+            
             todasLasColumnas.forEach(col => columnasActivas.add(col));
-            
             generarCheckboxesColumnas();
         }
 
         cacheMunicipiosDescargados[muniNombre] = baseDatosMunicipioActual;
         statusPanel.style.display = 'none';
         
-        // Ejecuta los filtros y fuerza la reconstrucción de las cabeceras de la tabla
         aplicarFiltrosSecundarios();
 
     } catch (e) {
@@ -291,7 +294,7 @@ function generarCheckboxesColumnas() {
         checkbox.onchange = (e) => {
             if (e.target.checked) columnasActivas.add(col);
             else columnasActivas.delete(col);
-            actualizarTabla(true); // Forzamos siempre a TRUE para reconstruir bien la tabla
+            actualizarTabla(true); 
         };
         label.appendChild(checkbox);
         label.appendChild(document.createTextNode(col.replace(/_/g, ' ')));
@@ -312,8 +315,6 @@ function aplicarFiltrosSecundarios() {
     });
 
     if (sortCol) aplicarOrdenacion();
-    
-    // El fallo estaba aquí: le hemos puesto "true" para que siempre dibuje la cabecera.
     actualizarTabla(true);
 }
 
