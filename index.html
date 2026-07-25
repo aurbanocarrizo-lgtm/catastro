@@ -16,10 +16,14 @@
         .btn { padding: 10px 18px; font-size: 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s; color: white; display: inline-flex; align-items: center; justify-content: center; min-height: 42px; width: 100%; }
         .btn-blue { background: #3b82f6; } .btn-blue:hover { background: #2563eb; }
         
+        /* Panel de Carga y Diagnóstico */
         #status-panel { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; }
         .status-header { display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 14px; color: #1e3a8a; }
         .spinner { width: 18px; height: 18px; border: 3px solid #93c5fd; border-top: 3px solid #1d4ed8; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; margin-right: 10px; vertical-align: middle; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Caja de errores para móviles */
+        .error-box { margin-top: 10px; padding: 12px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; color: #991b1b; font-family: monospace; font-size: 12px; white-space: pre-wrap; word-break: break-all; }
 
         .controls-panel { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
         .search-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid #e2e8f0; }
@@ -70,6 +74,7 @@
         <div class="status-header">
             <span><span class="spinner" id="loader-spinner"></span><span id="status-title">Iniciando aplicación...</span></span>
         </div>
+        <div id="status-details"></div>
     </div>
 
     <div class="controls-panel">
@@ -132,12 +137,31 @@ const COL_CALLE = 'Calle';
 const COL_PORTAL = 'Portal';
 const COL_PLANTA = 'Planta';
 
+function mostrarErrorDiag(titulo, detalle) {
+    const statusPanel = document.getElementById('status-panel');
+    const statusTitle = document.getElementById('status-title');
+    const statusDetails = document.getElementById('status-details');
+    const spinner = document.getElementById('loader-spinner');
+
+    spinner.style.display = 'none';
+    statusTitle.innerText = titulo;
+    statusDetails.innerHTML = `<div class="error-box"><strong>Detalle del error:</strong>\n${detalle}</div>`;
+    statusPanel.style.display = 'block';
+}
+
 window.onload = async function() {
+    const urlIndex = `${DIRECTORIO_DATOS}index.json`;
     try {
-        const resp = await fetch(`${DIRECTORIO_DATOS}index.json`);
-        if (!resp.ok) throw new Error("No se pudo cargar el índice de datos.");
+        const resp = await fetch(urlIndex);
+        if (!resp.ok) {
+            throw new Error(`Error HTTP ${resp.status} (${resp.statusText}) al leer "${urlIndex}".\nComprueba si el archivo existe dentro de la carpeta 'data'.`);
+        }
         
-        listaIndexGlobal = await resp.json();
+        try {
+            listaIndexGlobal = await resp.json();
+        } catch (jsonErr) {
+            throw new Error(`El archivo "${urlIndex}" existe pero no es un JSON válido.\nCausa: ${jsonErr.message}`);
+        }
 
         const selectMuni = document.getElementById('filtroMunicipio');
         selectMuni.innerHTML = '<option value="">-- Selecciona un Municipio --</option>';
@@ -153,13 +177,18 @@ window.onload = async function() {
 
     } catch (e) {
         console.error(e);
-        document.getElementById('loader-spinner').style.display = 'none';
-        document.getElementById('status-title').innerText = "Error cargando lista de municipios.";
+        mostrarErrorDiag("❌ Error al iniciar la aplicación", e.message);
     }
 };
 
 async function alSeleccionarMunicipio() {
     const muniNombre = document.getElementById('filtroMunicipio').value;
+    const statusPanel = document.getElementById('status-panel');
+    const statusTitle = document.getElementById('status-title');
+    const statusDetails = document.getElementById('status-details');
+    const spinner = document.getElementById('loader-spinner');
+    
+    statusDetails.innerHTML = '';
     
     if (!muniNombre) {
         baseDatosMunicipioActual = [];
@@ -175,17 +204,40 @@ async function alSeleccionarMunicipio() {
     }
 
     const itemMuni = listaIndexGlobal.find(m => m.nombre === muniNombre);
-    if (!itemMuni || !itemMuni.archivos) return;
+    if (!itemMuni) {
+        mostrarErrorDiag("❌ Error de mapeo", `No se encontró la configuración del municipio "${muniNombre}" en index.json.`);
+        return;
+    }
 
-    const statusPanel = document.getElementById('status-panel');
-    const statusTitle = document.getElementById('status-title');
+    if (!itemMuni.archivos || itemMuni.archivos.length === 0) {
+        mostrarErrorDiag("❌ Error de datos", `El municipio "${muniNombre}" está registrado en index.json pero no tiene lista de archivos asignada.`);
+        return;
+    }
+
+    spinner.style.display = 'inline-block';
     statusTitle.innerText = `Cargando datos de ${muniNombre}...`;
     statusPanel.style.display = 'block';
 
     try {
-        const promesas = itemMuni.archivos.map(arc => 
-            fetch(`${DIRECTORIO_DATOS}${arc}`).then(r => r.json())
-        );
+        const promesas = itemMuni.archivos.map(async (arc) => {
+            const urlArc = `${DIRECTORIO_DATOS}${arc}`;
+            let resp;
+            try {
+                resp = await fetch(urlArc);
+            } catch (netErr) {
+                throw new Error(`Fallo de conexión al buscar "${urlArc}": ${netErr.message}`);
+            }
+
+            if (!resp.ok) {
+                throw new Error(`Error HTTP ${resp.status} (${resp.statusText}) al descargar el archivo:\n"${urlArc}"\n\nVerifica que el archivo exista exactamente con ese nombre dentro de la carpeta 'data' en GitHub.`);
+            }
+
+            try {
+                return await resp.json();
+            } catch (jsonErr) {
+                throw new Error(`El archivo "${urlArc}" devolvió respuesta pero no es un JSON válido.\n(Probablemente GitHub devolvió una página de error 404 en HTML).\nDetalle: ${jsonErr.message}`);
+            }
+        });
 
         const partesDescargadas = await Promise.all(promesas);
         baseDatosMunicipioActual = partesDescargadas.flat();
@@ -203,7 +255,7 @@ async function alSeleccionarMunicipio() {
 
     } catch (e) {
         console.error(e);
-        statusTitle.innerText = `Error al cargar el municipio.`;
+        mostrarErrorDiag(`❌ Error al cargar ${muniNombre}`, e.message);
     }
 }
 
