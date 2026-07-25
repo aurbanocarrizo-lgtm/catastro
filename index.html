@@ -142,8 +142,6 @@ let cacheMunicipiosDescargados = {};
 
 let baseDatosMunicipioActual = [];
 let baseDatosFiltrada = [];
-let todasLasColumnas = [];
-let columnasActivas = new Set();
 let sortCol = null;
 let sortAsc = true;
 
@@ -151,6 +149,23 @@ const COL_MUNICIPIO = 'Municipio';
 const COL_CALLE = 'Calle';
 const COL_PORTAL = 'Portal';
 const COL_PLANTA = 'Planta';
+
+// ORDEN EXACTO en el que quieres que aparezcan las columnas
+const todasLasColumnas = [
+    "Municipio", "Calle", "Portal", "Planta", "Elemento", "Numero_Fijo", "Ano_Construccion", "Descripcion_Uso", "Superficie",
+    // Resto de columnas opcionales que aparecerán desmarcadas al final
+    "Naturaleza", "UsoBi", "Codigo_Uso", "Codigo_Clase", "Codigo_Modalidad", 
+    "Codigo_Municipio", "Codigo_Poligono", "Codigo_Parcela", 
+    "Codigo_Subparcela", "Codigo_Edificio", "Codigo_Calle", "Bien_Inmueble"
+];
+
+// LISTA DE COLUMNAS PREMARCADAS POR DEFECTO
+const colsDefecto = [
+    "Municipio", "Calle", "Portal", "Planta", "Elemento", "Numero_Fijo", "Ano_Construccion", "Descripcion_Uso", "Superficie"
+];
+
+// Asignamos las casillas activas
+let columnasActivas = new Set(colsDefecto);
 
 function mostrarErrorDiag(titulo, detalle) {
     const statusPanel = document.getElementById('status-panel');
@@ -165,17 +180,20 @@ function mostrarErrorDiag(titulo, detalle) {
 }
 
 window.onload = async function() {
+    generarCheckboxesColumnas(); 
+    actualizarTabla(true);       
+
     const urlIndex = `${DIRECTORIO_DATOS}index.json`;
     try {
         const resp = await fetch(urlIndex);
         if (!resp.ok) {
-            throw new Error(`Error HTTP ${resp.status} (${resp.statusText}) al leer "${urlIndex}".\nComprueba si el archivo existe dentro de la carpeta 'data'.`);
+            throw new Error(`Error HTTP ${resp.status} al leer el archivo index.json.`);
         }
         
         try {
             listaIndexGlobal = await resp.json();
         } catch (jsonErr) {
-            throw new Error(`El archivo "${urlIndex}" existe pero no es un JSON válido.\nCausa: ${jsonErr.message}`);
+            throw new Error(`El archivo index.json existe pero no es válido.\nCausa: ${jsonErr.message}`);
         }
 
         const selectMuni = document.getElementById('filtroMunicipio');
@@ -219,13 +237,8 @@ async function alSeleccionarMunicipio() {
     }
 
     const itemMuni = listaIndexGlobal.find(m => m.nombre === muniNombre);
-    if (!itemMuni) {
-        mostrarErrorDiag("❌ Error de mapeo", `No se encontró la configuración del municipio "${muniNombre}" en index.json.`);
-        return;
-    }
-
-    if (!itemMuni.archivos || itemMuni.archivos.length === 0) {
-        mostrarErrorDiag("❌ Error de datos", `El municipio "${muniNombre}" está registrado en index.json pero no tiene lista de archivos asignada.`);
+    if (!itemMuni || !itemMuni.archivos || itemMuni.archivos.length === 0) {
+        mostrarErrorDiag("❌ Error de datos", `El municipio no tiene lista de archivos asignada.`);
         return;
     }
 
@@ -236,39 +249,13 @@ async function alSeleccionarMunicipio() {
     try {
         const promesas = itemMuni.archivos.map(async (arc) => {
             const urlArc = `${DIRECTORIO_DATOS}${arc}`;
-            let resp;
-            try {
-                resp = await fetch(urlArc);
-            } catch (netErr) {
-                throw new Error(`Fallo de conexión al buscar "${urlArc}": ${netErr.message}`);
-            }
-
-            if (!resp.ok) {
-                throw new Error(`Error HTTP ${resp.status} (${resp.statusText}) al descargar el archivo:\n"${urlArc}"\n\nVerifica que el archivo exista exactamente con ese nombre dentro de la carpeta 'data' en GitHub.`);
-            }
-
-            try {
-                return await resp.json();
-            } catch (jsonErr) {
-                throw new Error(`El archivo "${urlArc}" devolvió respuesta pero no es un JSON válido.\n(Probablemente GitHub devolvió una página de error 404 en HTML).\nDetalle: ${jsonErr.message}`);
-            }
+            const resp = await fetch(urlArc);
+            if (!resp.ok) throw new Error(`Fallo descargando ${urlArc}`);
+            return await resp.json();
         });
 
         const partesDescargadas = await Promise.all(promesas);
         baseDatosMunicipioActual = partesDescargadas.flat();
-
-        if (todasLasColumnas.length === 0 && baseDatosMunicipioActual.length > 0) {
-            // SOLUCIÓN: Escanear TODOS los inmuebles para recolectar las columnas, no solo el primero.
-            let setDeColumnas = new Set();
-            baseDatosMunicipioActual.forEach(fila => {
-                Object.keys(fila).forEach(k => setDeColumnas.add(k));
-            });
-            
-            todasLasColumnas = Array.from(setDeColumnas);
-            
-            todasLasColumnas.forEach(col => columnasActivas.add(col));
-            generarCheckboxesColumnas();
-        }
 
         cacheMunicipiosDescargados[muniNombre] = baseDatosMunicipioActual;
         statusPanel.style.display = 'none';
