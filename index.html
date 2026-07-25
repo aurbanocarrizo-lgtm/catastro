@@ -21,7 +21,6 @@
         .spinner { width: 18px; height: 18px; border: 3px solid #93c5fd; border-top: 3px solid #1d4ed8; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; margin-right: 10px; vertical-align: middle; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Panel de errores mejorado */
         #error-panel { display: none; background: #fef2f2; border: 1px solid #f87171; border-left: 4px solid #ef4444; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; color: #991b1b; font-size: 13px; }
         #error-panel strong { display: block; font-size: 14px; margin-bottom: 4px; }
         .debug-info { font-family: monospace; background: #fee2e2; padding: 8px; border-radius: 4px; margin-top: 8px; white-space: pre-wrap; word-break: break-all; font-size: 11px; }
@@ -77,7 +76,6 @@
         </div>
     </div>
 
-    <!-- Nuevo panel de errores -->
     <div id="error-panel">
         <strong id="error-title">Error</strong>
         <span id="error-message"></span>
@@ -127,7 +125,6 @@
 </div>
 
 <script>
-// Ruta relativa al directorio de datos en el servidor
 const DIRECTORIO_DATOS = './data/';
 
 let listaIndexGlobal = []; 
@@ -171,9 +168,7 @@ window.onload = async function() {
     const urlIndex = `${DIRECTORIO_DATOS}index.json`;
     try {
         const resp = await fetch(urlIndex);
-        if (!resp.ok) {
-            throw new Error(`HTTP ${resp.status}: ${resp.statusText}. Error al cargar: ${urlIndex}`);
-        }
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}. Error al cargar: ${urlIndex}`);
         
         listaIndexGlobal = await resp.json();
 
@@ -182,7 +177,8 @@ window.onload = async function() {
         
         listaIndexGlobal.forEach(item => {
             const opt = document.createElement('option');
-            opt.value = item.archivo;
+            // Guardamos el ARRAY entero convertido a texto en el value del select
+            opt.value = JSON.stringify(item.archivos);
             opt.innerText = item.nombre;
             selectMuni.appendChild(opt);
         });
@@ -197,42 +193,49 @@ window.onload = async function() {
 
 async function alSeleccionarMunicipio() {
     ocultarError();
-    const archivoSeleccionado = document.getElementById('filtroMunicipio').value;
+    const seleccion = document.getElementById('filtroMunicipio').value;
     
-    if (!archivoSeleccionado) {
+    if (!seleccion) {
         baseDatosMunicipioActual = [];
         baseDatosFiltrada = [];
         actualizarTabla();
         return;
     }
 
-    if (cacheMunicipiosDescargados[archivoSeleccionado]) {
-        baseDatosMunicipioActual = cacheMunicipiosDescargados[archivoSeleccionado];
+    if (cacheMunicipiosDescargados[seleccion]) {
+        baseDatosMunicipioActual = cacheMunicipiosDescargados[seleccion];
         aplicarFiltrosSecundarios(true);
         return;
     }
 
     const statusPanel = document.getElementById('status-panel');
     const statusTitle = document.getElementById('status-title');
-    statusTitle.innerText = `Cargando datos...`;
+    statusTitle.innerText = `Cargando datos (puede tardar en municipios grandes)...`;
     statusPanel.style.display = 'block';
 
-    const urlMunicipio = `${DIRECTORIO_DATOS}${archivoSeleccionado}`;
-
     try {
-        const resp = await fetch(urlMunicipio);
-        if (!resp.ok) {
-            throw new Error(`HTTP ${resp.status}: ${resp.statusText}. Error al cargar: ${urlMunicipio}`);
-        }
-
-        const textoBruto = await resp.text(); 
+        // Convertimos de vuelta el texto a un array de archivos
+        const archivos = JSON.parse(seleccion);
         
-        // Intentamos parsear manualmente para capturar errores de formato JSON
-        try {
-            baseDatosMunicipioActual = JSON.parse(textoBruto);
-        } catch (jsonErr) {
-            throw new Error(`El archivo descargado no es un JSON válido. Revisa el archivo ${archivoSeleccionado}. Detalles: ${jsonErr.message}`);
-        }
+        // Lanzamos todas las descargas a la vez en paralelo
+        const fetchPromises = archivos.map(async (archivo) => {
+            const url = `${DIRECTORIO_DATOS}${archivo}`;
+            const resp = await fetch(url);
+            if (!resp.ok) throw new Error(`HTTP ${resp.status} al cargar ${url}`);
+            
+            const textoBruto = await resp.text();
+            try {
+                return JSON.parse(textoBruto);
+            } catch (jsonErr) {
+                throw new Error(`El archivo ${archivo} no es un JSON válido. Detalles: ${jsonErr.message}`);
+            }
+        });
+
+        // Esperamos a que se descarguen todos los trozos del municipio
+        const arraysDeDatos = await Promise.all(fetchPromises);
+        
+        // Juntamos todos los arrays (trozos) en una sola base de datos grande
+        baseDatosMunicipioActual = arraysDeDatos.flat();
 
         if (todasLasColumnas.length === 0 && baseDatosMunicipioActual.length > 0) {
             todasLasColumnas = Object.keys(baseDatosMunicipioActual[0]);
@@ -241,7 +244,7 @@ async function alSeleccionarMunicipio() {
             generarCheckboxesColumnas();
         }
 
-        cacheMunicipiosDescargados[archivoSeleccionado] = baseDatosMunicipioActual;
+        cacheMunicipiosDescargados[seleccion] = baseDatosMunicipioActual;
         statusPanel.style.display = 'none';
         aplicarFiltrosSecundarios(true);
 
